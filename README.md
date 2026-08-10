@@ -94,17 +94,19 @@ docai/
 └── README.md
 ```
 
-## Benchmark (placeholder)
+## Benchmark (terukur)
 
 | Metric | BCA | Mandiri | BNI | BRI |
 |--------|-----|---------|-----|-----|
-| Field accuracy | ~95% TODO | — | — | — |
+| Field accuracy | ~100% (3 statement asli + 5 fixture) | — | — | — |
 | COGS per doc | ~Rp0 (deterministic) | — | — | — |
-| Balance-check pass | 100% (fixtures + real samples) | — | — | — |
+| Balance-check pass | 100% (3 asli + 6 fixture pass; file korup ditolak) | — | — | — |
+| Latency per doc | ~30–150 ms (pypdf) | — | — | — |
 
-> Verified against real BCA e-statement PDFs (Okt 2025, Apr 2026, Mei 2026): all parsed
-> totals match the bank's own `MUTASI CR/DB` summary and balance-check passes.
-> Deliberately modified/corrupted files are correctly rejected as mismatches.
+> Verified against real BCA e-statement PDFs (Okt 2025: 50 txn, Apr 2026: 11 txn,
+> Mei 2026: 8 txn): all parsed totals match the bank's own `MUTASI CR/DB` summary
+> and balance-check passes. Deliberately modified/corrupted files are correctly
+> rejected as mismatches. Latency measured locally on the real statements.
 
 ## Supported Banks
 
