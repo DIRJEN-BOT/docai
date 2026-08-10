@@ -11,6 +11,9 @@ Extract structured transaction data from Indonesian bank e-statement PDFs (BCA, 
 
 - Parse BCA e-statement PDFs → structured `Transaction` objects
 - **Balance-check validation** — every parsed result is verified; mismatches are rejected
+- **Row-level running-balance validation** — each transaction's printed balance is checked against opening + net amounts, catching misparses that a closing-balance-only check would miss
+- **Date normalization** — bare `DD/MM` dates in real BCA statements get the year from the statement period (`02/01` → `02/01/2026`), ready for accounting imports
+- **Batch parsing + CSV export on the CLI** — `docai parse a.pdf b.pdf --format csv` for pipeline use
 - Handles BCA quirks: DOB-locked PDFs (clear error), "DB"/"CR" label convention, both number conventions — synthetic fixtures (`1.234.567,89`) and the real BCA e-statement style (`54,291,427.59`)
 - Deterministic, zero-API-cost parsing — no LLM calls for known formats
 - MIT licensed, open source
@@ -22,23 +25,40 @@ Extract structured transaction data from Indonesian bank e-statement PDFs (BCA, 
 pip install -e ".[dev]"
 
 # Python usage
-from docai.parsers.bca import BCAParser
-from docai.validation import validate_balance
+from docai import BCAParser, validate_statement
 
-parser = BCAParser()
-result = parser.parse("my_statement.pdf")
-validate_balance(result)  # raises ValidationError if balance mismatch
+result = BCAParser().parse("my_statement.pdf")
+validate_statement(result)  # full suite: balance + amounts + running balances
 
 for txn in result.transactions:
     print(f"{txn.date}  {txn.description:40s}  Dr {txn.debit:>15}  Cr {txn.credit:>15}  Bal {txn.balance:>15}")
 ```
 
+`validate_statement` runs the full validation pass (aggregate balance check → non-negative amounts → per-row running balances). Individual checks are also exported: `validate_balance`, `validate_debit_credit_non_negative`, `validate_running_balances`.
+
 ## CLI
 
 ```bash
+# Satu file → JSON ke stdout
 docai parse --bank bca statement.pdf
-# → JSON output to stdout
+
+# Banyak file → array JSON [{"file": ..., "result": ...}]
+docai parse --bank bca jan.pdf feb.pdf mar.pdf
+
+# Ekspor CSV (semicolon; header: tanggal;keterangan;debit;kredit;saldo)
+docai parse --bank bca statement.pdf --format csv
+
+# Batch CSV — tiap blok diawali komentar "# file: <path>"
+docai parse --bank bca jan.pdf feb.pdf --format csv > mutasi.csv
+
+# Skip validasi (hanya parse)
+docai parse --bank bca statement.pdf --no-validate
+
+# Ganti bank / daftar bank didukung
+docai banks
 ```
+
+Exit code 0 = semua file ter-parse **dan** lolos validasi; non-zero = ada yang gagal parse atau gagal validation (detail di stderr) — aman dipakai di pipeline.
 
 ## REST API (lokal / self-host)
 
@@ -74,7 +94,7 @@ docai/
 ├── src/docai/
 │   ├── models.py          # Transaction dataclass, ParseResult
 │   ├── base.py            # BaseParser ABC, ParseError hierarchy
-│   ├── validation.py      # Balance-check validator
+│   ├── validation.py      # Balance + running-balance validators
 │   ├── serialization.py   # JSON/CSV serialization (shared CLI + API)
 │   ├── api.py             # FastAPI wrapper (JSON + CSV + demo page)
 │   ├── utils.py           # Indonesian number parsing, text cleanup
@@ -84,6 +104,7 @@ docai/
 ├── tests/
 │   ├── test_parsers.py    # Parser integration tests
 │   ├── test_validation.py # Validation unit tests
+│   ├── test_cli.py        # CLI end-to-end tests (batch/CSV/errors)
 │   ├── test_api.py        # FastAPI endpoint tests
 │   └── generate_fixtures.py
 ├── docs/
@@ -121,7 +142,7 @@ docai/
 
 - **Week 1:** BCA parser + tests + landing page ✅
 - **Week 2:** FastAPI wrapper ✅ + CSV export ✅ + demo page ✅ · RapidAPI listing · Mandiri/BNI/BRI parsers
-- **Week 3:** Balance-check hardening + KTP/NPWP extraction
+- **Week 3:** Balance-check hardening ✅ (row-level running balances, batch CLI, date normalization) · KTP/NPWP extraction
 - **Week 4:** Billing + SEO pages + accountant beta launch
 
 ## Need Production / API?

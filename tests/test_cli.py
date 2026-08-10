@@ -74,3 +74,44 @@ def test_missing_file_errors():
     proc = run_cli("parse", "--bank", "bca", "/nonexistent/file.pdf")
     assert proc.returncode == 1
     assert "Error" in proc.stderr
+
+
+def test_parse_batch_multiple_files():
+    proc = run_cli("parse", "--bank", "bca", str(HAPPY_PATH), str(NATIVE_PATH))
+    assert proc.returncode == 0, proc.stderr
+    data = json.loads(proc.stdout)
+    assert isinstance(data, list)
+    assert len(data) == 2
+    for item in data:
+        assert set(item) == {"file", "result"}
+        assert item["result"]["balance_check"] == "passed"
+
+
+def test_parse_batch_with_one_failure_keeps_list_shape():
+    """A failed file in a batch must not silently collapse the output shape."""
+    proc = run_cli("parse", "--bank", "bca", str(HAPPY_PATH), "/nonexistent/file.pdf")
+    assert proc.returncode == 1
+    assert "Error parsing" in proc.stderr
+    assert "/nonexistent/file.pdf" in proc.stderr
+    data = json.loads(proc.stdout)
+    assert isinstance(data, list)
+    assert len(data) == 1
+    assert data[0]["file"].endswith("bca_happy_path.pdf")
+    assert data[0]["result"]["balance_check"] == "passed"
+
+
+def test_parse_csv_single_file():
+    proc = run_cli("parse", "--bank", "bca", "--format", "csv", str(HAPPY_PATH))
+    assert proc.returncode == 0, proc.stderr
+    lines = proc.stdout.strip().splitlines()
+    assert lines[0] == "tanggal;keterangan;debit;kredit;saldo"
+    assert len(lines) == 1 + 8  # header + 8 transactions
+    assert "500000.00" in lines[1]  # first row: TRSF E-BANKING BCA credit
+
+
+def test_parse_csv_batch_has_file_markers():
+    proc = run_cli("parse", "--bank", "bca", "--format", "csv", str(HAPPY_PATH), str(NATIVE_PATH))
+    assert proc.returncode == 0, proc.stderr
+    # First marker sits at the very start of stdout (no leading newline).
+    assert proc.stdout.count("# file:") == 2
+    assert proc.stdout.count("tanggal;keterangan;debit;kredit;saldo") == 2

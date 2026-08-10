@@ -48,7 +48,25 @@ class BCAParser(BaseParser):
             # "Saldo Awal : Rp …", one line per transaction).
             self._extract_metadata(text, result)
             self._extract_transactions(text, result)
+        self._normalize_dates(result)
         return result
+
+    def _normalize_dates(self, result: ParseResult) -> None:
+        """Append the statement year to bare DD/MM dates.
+
+        Real BCA e-statements print dates as "DD/MM" (no year). Accounting
+        imports need a full date, so we inherit the year from the statement
+        period (e.g. "JANUARI 2026" → 2026). Dates that already carry a year
+        are left untouched. Limitation: for a cross-year period
+        ("31/12/2025 - 02/01/2026") the FIRST year in the period is used.
+        """
+        m = re.search(r"(?:19|20)\d{2}", result.statement_period)
+        if not m:
+            return
+        year = m.group(0)
+        for t in result.transactions:
+            if re.fullmatch(r"\d{2}/\d{2}", t.date):
+                object.__setattr__(t, "date", f"{t.date}/{year}")
 
     def _is_native_format(self, text: str) -> bool:
         """Detect the real BCA e-statement layout vs the synthetic one."""

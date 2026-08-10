@@ -3,6 +3,15 @@
 Usage:
     docai parse --bank bca statement.pdf
     → structured JSON to stdout; exit 0 on success.
+
+    docai parse --bank bca a.pdf b.pdf c.pdf
+    → JSON array of per-file results (each with "file" and "result").
+
+    docai parse --bank bca statement.pdf --format csv
+    → semicolon-delimited CSV to stdout (header: tanggal;keterangan;debit;kredit;saldo).
+
+Exits non-zero if any file fails to parse or fails validation (balance-check,
+non-negative amounts, or row-level running-balance consistency).
 """
 
 from __future__ import annotations
@@ -10,13 +19,13 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from docai.base import ParseError, PasswordProtectedError
 from docai.models import ParseResult
 from docai.parsers.registry import get_parser, list_banks
-from docai.serialization import result_to_dict
-from docai.validation import ValidationError, validate_balance
+from docai.serialization import result_to_csv, result_to_dict
+from docai.validation import ValidationError, validate_statement
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -26,8 +35,12 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    parse_p = sub.add_parser("parse", help="Parse a statement PDF to JSON")
-    parse_p.add_argument("pdf", help="Path to the e-statement PDF file")
+    parse_p = sub.add_parser("parse", help="Parse statement PDF(s) to JSON/CSV")
+    parse_p.add_argument(
+        "pdf",
+        nargs="+",
+        help="Path(s) to the e-statement PDF file(s)",
+    )
     parse_p.add_argument(
         "--bank",
         required=True,
@@ -35,9 +48,15 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Bank identifier (see: docai banks)",
     )
     parse_p.add_argument(
+        "--format",
+        choices=["json", "csv"],
+        default="json",
+        help="Output format (default: json)",
+    )
+    parse_p.add_argument(
         "--no-validate",
         action="store_true",
-        help="Skip the balance-check validation pass",
+        help="Skip the validation pass (balance-check + running balances)",
     )
     parse_p.add_argument(
         "--pretty",
@@ -47,6 +66,29 @@ def _build_parser() -> argparse.ArgumentParser:
 
     banks_p = sub.add_parser("banks", help="List supported banks")
     return parser
+
+
+def _parse_one(
+    pdf_path: str, bank: str, do_validate: bool
+) -> Tuple[ParseResult, str, Optional[str], Optional[str]]:
+    """Parse one file. Returns (result, balance_status, validation_error, error)."""
+    parser_instance = get_parser(bank)
+    try:
+        result = parser_instance.parse(pdf_path)
+    except PasswordProtectedError as e:
+        return None, None, None, str(e)
+    except (ParseError, FileNotFoundError, ValueError) as e:
+        return None, None, None, str(e)
+
+    balance_status = "passed"
+    validation_error: Optional[str] = None
+    if do_validate:
+        try:
+            validate_statement(result)
+        except ValidationError as e:
+            balance_status = "failed"
+            validation_error = str(e)
+    return result, balance_status, validation_error, None
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -59,33 +101,63 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 0
 
     # command == "parse"
-    try:
-        parser_instance = get_parser(args.bank)
-        result = parser_instance.parse(args.pdf)
-    except PasswordProtectedError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
-    except (ParseError, FileNotFoundError, ValueError) as e:
-        print(f"Error: {e}", file=sys.stderr)
-        return 1
+    do_validate = not args.no_validate
+    parsed: List[Tuple[str, ParseResult, str, Optional[str]]] = []  # (file, result, status, verr)
+    errors: List[Tuple[str, str]] = []  # (file, error message)
+    failed = False
 
-    balance_status = "passed"
-    validation_error: Optional[str] = None
-    if not args.no_validate:
-        try:
-            validate_balance(result)
-        except ValidationError as e:
-            balance_status = "failed"
-            validation_error = str(e)
+    for pdf_path in args.pdf:
+        result, balance_status, validation_error, error = _parse_one(
+            pdf_path, args.bank, do_validate
+        )
+        if error is not None:
+            errors.append((pdf_path, error))
+            failed = True
+            continue
+        if balance_status == "failed":
+            failed = True
+        parsed.append((pdf_path, result, balance_status, validation_error))
 
-    payload = result_to_dict(result, balance_status)
-    if validation_error is not None:
-        payload["validation_error"] = validation_error
+    for pdf_path, error in errors:
+        print(f"Error parsing {pdf_path}: {error}", file=sys.stderr)
+
+    if args.format == "csv":
+        for pdf_path, result, balance_status, validation_error in parsed:
+            if len(args.pdf) > 1:
+                print(f"# file: {pdf_path}")
+            print(result_to_csv(result), end="")
+            if balance_status == "failed":
+                print(f"# validation: {validation_error}", file=sys.stderr)
+        return 1 if failed else 0
+
+    # JSON output. Single input file → one result object (same shape as
+    # before); multiple input files → list of {"file": ..., "result": ...},
+    # keyed off the INPUT count so a failed file in a batch cannot silently
+    # change the output shape.
+    def _payload(result: ParseResult, status: str, verr: Optional[str]) -> dict:
+        payload = result_to_dict(result, status)
+        if verr is not None:
+            payload["validation_error"] = verr
+        return payload
+
+    if len(args.pdf) > 1:
+        out = [
+            {"file": pdf_path, "result": _payload(result, status, verr)}
+            for pdf_path, result, status, verr in parsed
+        ]
+        if not out and errors:
+            out = {"error": "no files could be parsed"}
+    else:
+        if not parsed:
+            out = {"error": "no files could be parsed"}
+        else:
+            _, result, status, verr = parsed[0]
+            out = _payload(result, status, verr)
 
     indent = 2 if args.pretty else None
-    print(json.dumps(payload, indent=indent))
-    # Exit non-zero when a statement fails balance-check (useful in pipelines).
-    return 1 if balance_status == "failed" else 0
+    print(json.dumps(out, indent=indent))
+    # Exit non-zero when any statement fails parse or validation (pipeline-friendly).
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

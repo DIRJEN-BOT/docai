@@ -239,21 +239,22 @@ class TestNativeFormat:
 
         # Debit/credit direction resolved correctly for each row type:
         # labelled closing line, description label, balance comparison.
-        qr_credit = [t for t in result.transactions if t.date == "02/01" and t.credit == Decimal("4965993")]
+        # Dates are normalized to DD/MM/YYYY from the period year (JANUARI 2026).
+        qr_credit = [t for t in result.transactions if t.date == "02/01/2026" and t.credit == Decimal("4965993")]
         assert len(qr_credit) == 1
         assert "KR OTOMATIS" in qr_credit[0].description
 
-        atm_debit = [t for t in result.transactions if t.date == "03/01" and t.debit == Decimal("250000.00")]
+        atm_debit = [t for t in result.transactions if t.date == "03/01/2026" and t.debit == Decimal("250000.00")]
         assert len(atm_debit) == 1
         assert atm_debit[0].debit == Decimal("250000.00")
 
         # No-label row resolved via description hint / balance comparison
-        bfast = [t for t in result.transactions if t.date == "05/01" and t.credit == Decimal("3000000.00")]
+        bfast = [t for t in result.transactions if t.date == "05/01/2026" and t.credit == Decimal("3000000.00")]
         assert len(bfast) == 1
         assert "BI-FAST" in bfast[0].description
 
         # Single-line row "15/01 BIAYA ADM 25,000.00 DB 9,929,972.00"
-        adm = [t for t in result.transactions if t.date == "15/01" and t.debit == Decimal("25000.00")]
+        adm = [t for t in result.transactions if t.date == "15/01/2026" and t.debit == Decimal("25000.00")]
         assert len(adm) == 1
         assert adm[0].description == "BIAYA ADM"
 

@@ -28,7 +28,7 @@ from docai.base import ParseError, PasswordProtectedError
 from docai.models import ParseResult
 from docai.parsers.registry import get_parser, list_banks
 from docai.serialization import result_to_csv, result_to_dict
-from docai.validation import ValidationError, validate_balance
+from docai.validation import ValidationError, validate_statement
 
 app = FastAPI(
     title="DocAI — Indonesian Bank Statement Parser",
@@ -108,7 +108,7 @@ def _parse_and_validate(
     balance_status = "passed"
     validation_error: Optional[str] = None
     try:
-        validate_balance(result)
+        validate_statement(result)
     except ValidationError as e:
         balance_status = "failed"
         validation_error = str(e)
