@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cara Parse Rekening Koran BCA ke Excel/CSV/JSON Otomatis — DocAI</title>
+  <meta name="description" content="Tutorial parse rekening koran / e-statement BCA (PDF) ke Excel, CSV, atau JSON otomatis. Tanpa mengetik ulang: balance-check otomatis, gratis, open-source.">
+  <meta name="keywords" content="parse rekening koran BCA, e-statement BCA ke excel, mutasi BCA to csv, rekening koran to json, ekstrak pdf rekening koran, jurnal import">
+  <link rel="canonical" href="https://oyi77.github.io/docai/parse-rekening-koran-bca.html">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1a1a2e; line-height: 1.7; margin: 0; background: #f8f9fa; }
+    .container { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+    header { background: #0f3460; color: #fff; padding: 40px 0; }
+    header h1 { margin: 0 0 8px; font-size: 1.8rem; }
+    header p { opacity: .9; margin: 0; }
+    main { padding: 40px 0; }
+    .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+    h2 { color: #0f3460; font-size: 1.3rem; }
+    code, pre { background: #1a1a2e; color: #c8e1ff; border-radius: 6px; font-size: .9rem; }
+    code { padding: 2px 6px; }
+    pre { padding: 14px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+    th, td { border: 1px solid #e0e0e0; padding: 8px; text-align: left; }
+    th { background: #f0f3f8; }
+    a { color: #0f3460; }
+    .cta { text-align: center; background: #0f3460; color: #fff; padding: 28px; border-radius: 10px; }
+    .cta a { display: inline-block; background: #e94560; color: #fff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; }
+    footer { text-align: center; padding: 24px; font-size: .85rem; color: #888; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>Cara Parse Rekening Koran BCA ke Excel, CSV, dan JSON</h1>
+      <p>Tutorial otomatisasi — hentikan mengetik ulang mutasi bank.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <h2>Masalahnya</h2>
+      <p>Rekening koran BCA dikirim sebagai PDF e-statement. Untuk input ke pembukuan, Excel, atau software akuntansi (Jurnal, Accurate, Kledo), datanya harus diketik ulang — rawan salah ketik dan makan waktu. Kalau Anda akuntan dengan puluhan klien, biaya ini berlipat tiap bulan.</p>
+      <p><strong>Solusi:</strong> parse otomatis. PDF mutasi BCA → baris transaksi terstruktur (tanggal, keterangan, debit, kredit, saldo) yang siap diimpor, plus <strong>balance-check otomatis</strong> supaya saldo awal + mutasi selalu cocok dengan saldo akhir.</p>
+    </div>
+
+    <div class="card">
+      <h2>Contoh output</h2>
+      <pre>{
+  "bank": "bca",
+  "account_name": "PT CONTOH SEJAHTERA",
+  "opening_balance": 1000000.00,
+  "closing_balance": 5225000.00,
+  "balance_check": "passed",
+  "total_debit": 1525000.00,
+  "total_credit": 5750000.00,
+  "transactions": [
+    { "date": "02/01/2026", "description": "TRSF E-BANKING BCA", "debit": 0, "credit": 500000, "balance": 1500000 },
+    { "date": "03/01/2026", "description": "ATM WD BCA KCP THAMRIN", "debit": 250000, "credit": 0, "balance": 1250000 }
+  ]
+}</pre>
+      <p>Output yang sama tersedia sebagai CSV (semicolon) siap import Excel: <code>tanggal;keterangan;debit;kredit;saldo</code>.</p>
+    </div>
+
+    <div class="card">
+      <h2>Fitur yang menangani "keganjilan" e-statement BCA</h2>
+      <table>
+        <tr><th>Kasus</th><th>Penanganan</th></tr>
+        <tr><td>PDF dikunci tanggal lahir (DOB-locked)</td><td>Error jelas dengan instruksi unlock DDMMYYYY, bukan output kosong</td></tr>
+        <tr><td>Format angka <code>54,291,427.59</code></td><td>Didukung — otomatis terdeteksi</td></tr>
+        <tr><td>Label DB / CR / KR</td><td>Digunakan untuk menentukan arah debit/kredit</td></tr>
+        <tr><td>Saldo tidak balance</td><td>Ditolak dengan pesan mismatch — data tidak akan lolos diam-diam</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h2>Mulai sekarang</h2>
+      <p>Proyek ini <strong>open-source (MIT)</strong>. Jalankan sendiri gratis:</p>
+      <pre>pip install -e ".[dev]"
+
+# CLI
+docai parse --bank bca mutasi.pdf
+
+# REST API lokal
+python -m docai.api
+curl -X POST http://localhost:8000/parse -F "file=@mutasi.pdf" -F "bank=bca"</pre>
+      <p>Butuh versi ter-hosting dengan SLA, batch processing, dan dukungan bank lain? Hubungi kami untuk <strong>RapidAPI / enterprise access</strong>.</p>
+    </div>
+
+    <div class="cta">
+      <p style="margin:0 0 14px;"><strong>Ingin versi yang langsung dipakai, tanpa setup?</strong></p>
+      <a href="https://github.com/oyi77/docai">Lihat Kode di GitHub</a>
+    </div>
+  </main>
+
+  <footer>
+    <p><a href="./">← Kembali ke beranda DocAI</a> &bull; DocAI &copy; 2026</p>
+  </footer>
+</body>
+</html>

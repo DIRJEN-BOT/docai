@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Parser Mutasi Bank Indonesia (BCA, Mandiri, BNI, BRI) — DocAI</title>
+  <meta name="description" content="REST API untuk parse e-statement bank Indonesia ke JSON/CSV terstruktur. Deterministik, zero LLM cost, balance-check built-in. Untuk developer fintech & akuntan.">
+  <meta name="keywords" content="api mutasi bank, parser rekening koran api, bank statement api indonesia, parse pdf e-statement, bca api, mandiri api, bni api, bri api, OCR rekening koran">
+  <link rel="canonical" href="https://oyi77.github.io/docai/api-parser-mutasi-bank.html">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #1a1a2e; line-height: 1.7; margin: 0; background: #f8f9fa; }
+    .container { max-width: 760px; margin: 0 auto; padding: 0 20px; }
+    header { background: #16213e; color: #fff; padding: 40px 0; }
+    header h1 { margin: 0 0 8px; font-size: 1.8rem; }
+    header p { opacity: .9; margin: 0; }
+    main { padding: 40px 0; }
+    .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+    h2 { color: #16213e; font-size: 1.3rem; }
+    code, pre { background: #1a1a2e; color: #c8e1ff; border-radius: 6px; font-size: .9rem; }
+    code { padding: 2px 6px; }
+    pre { padding: 14px; overflow: auto; }
+    a { color: #16213e; }
+    .cta { text-align: center; background: #16213e; color: #fff; padding: 28px; border-radius: 10px; }
+    .cta a { display: inline-block; background: #e94560; color: #fff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; }
+    footer { text-align: center; padding: 24px; font-size: .85rem; color: #888; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>API Parser Mutasi Bank Indonesia</h1>
+      <p>Ubah PDF e-statement BCA, Mandiri, BNI, BRI menjadi data terstruktur — tanpa biaya per dokumen.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <h2>Kenapa API parser bank statement penting?</h2>
+      <p>Aplikasi fintech (pencatatan keuangan, credit scoring, dashboard cash-flow) butuh data transaksi bank yang rapi. Kalau parsing dilakukan manual atau dengan LLM generik, hasilnya mahal, lambat, dan tidak konsisten. DocAI memakai <strong>parsing deterministik</strong> — pola format bank yang sudah dikenal diparse langsung, sehingga <strong>COGS per dokumen praktis Rp0</strong> dan output selalu konsisten.</p>
+    </div>
+
+    <div class="card">
+      <h2>Endpoint</h2>
+      <pre>POST /parse          → JSON (default) atau CSV (?format=csv)
+GET  /health         → status + daftar bank
+
+# Contoh request
+curl -X POST https://api.docai.id/v1/statements/parse \
+     -F "file=@mutasi.pdf" -F "bank=bca" \
+     -H "X-RapidAPI-Key: YOUR_KEY"</pre>
+      <p>Balanced check bawaan: setiap respons berisi <code>balance_check: "passed" | "failed"</code> plus <code>validation_error</code> kalau saldo tidak cocok — akuntan dapat langsung tahu data mana yang perlu diinvestigasi.</p>
+    </div>
+
+    <div class="card">
+      <h2>Roadmap bank</h2>
+      <pre>BCA      ✅ parser selesai + verified terhadap statement asli
+Mandiri  🔜 (butuh sampel format)
+BNI      🔜 (butuh sampel format)
+BRI      🔜 (butuh sampel format)</pre>
+    </div>
+
+    <div class="cta">
+      <p style="margin:0 0 14px;"><strong>Developer &amp; akuntan: coba parser-nya sekarang, gratis.</strong></p>
+      <a href="https://github.com/oyi77/docai">Mulai di GitHub</a>
+    </div>
+  </main>
+
+  <footer>
+    <p><a href="./">← Kembali ke beranda DocAI</a> &bull; DocAI &copy; 2026</p>
+  </footer>
+</body>
+</html>
