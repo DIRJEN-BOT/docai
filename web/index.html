@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocAI — Demo Parser E-Statement Bank</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      margin: 0;
+      background: #f6f7f9;
+      color: #1a2233;
+    }
+    header {
+      background: #0b1f3a;
+      color: #fff;
+      padding: 24px 20px;
+    }
+    header h1 { margin: 0; font-size: 22px; }
+    header p { margin: 6px 0 0; opacity: .8; font-size: 14px; }
+    main { max-width: 880px; margin: 24px auto; padding: 0 16px; }
+    .card {
+      background: #fff;
+      border: 1px solid #e3e7ee;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 6px; }
+    input[type="file"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px dashed #9aa5b5;
+      border-radius: 8px;
+      background: #fafbfc;
+    }
+    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-top: 14px; }
+    .row select, .row button { padding: 10px 16px; border-radius: 8px; font-size: 14px; }
+    .row select { border: 1px solid #c4cbd6; background: #fff; }
+    .row button {
+      background: #0b1f3a;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .row button:hover { background: #14325c; }
+    .row button:disabled { background: #8a94a5; cursor: wait; }
+    #download {
+      background: #0e7a3d;
+      display: none;
+      text-decoration: none;
+    }
+    #status { font-size: 13px; color: #5a6478; margin-top: 10px; }
+    pre {
+      background: #0f172a;
+      color: #d6e2ff;
+      padding: 14px;
+      border-radius: 8px;
+      overflow: auto;
+      font-size: 12px;
+      max-height: 420px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 8px;
+    }
+    .badge.ok { background: #d9f4e3; color: #0e7a3d; }
+    .badge.fail { background: #fde3e3; color: #b42318; }
+    .error { background: #fdecec; border: 1px solid #f5c6c6; color: #b42318; padding: 12px; border-radius: 8px; }
+    .meta { font-size: 13px; color: #5a6478; margin: 8px 0 0; }
+    ul.meta { padding-left: 18px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>DocAI <span style="font-weight:400; font-size:14px; opacity:.7;">— Demo API Parser E-Statement Bank Indonesia</span></h1>
+    <p>Upload PDF e-statement, dapatkan transaksi terstruktur (JSON/CSV) dengan balance-check otomatis.</p>
+  </header>
+
+  <main>
+    <div class="card">
+      <label for="file">File PDF e-statement (contoh: mutasi BCA .pdf)</label>
+      <input type="file" id="file" accept=".pdf,application/pdf" />
+      <div class="row">
+        <select id="bank">
+          <option value="bca">BCA</option>
+        </select>
+        <button id="parseBtn">Parse</button>
+        <a id="download" href="#" download="mutasi.csv">⬇ Download CSV</a>
+      </div>
+      <p id="status">Pilih file lalu klik Parse. Data hanya diproses di memori server demo, tidak disimpan.</p>
+    </div>
+
+    <div id="result"></div>
+
+    <div class="card">
+      <h3 style="margin-top:0; font-size:15px;">Endpoint API</h3>
+      <pre>POST /parse   → JSON (default) atau CSV (?format=csv)
+GET  /health → status + daftar bank
+
+curl -X POST http://localhost:8000/parse \
+     -F "file=@statement.pdf" \
+     -F "bank=bca"</pre>
+      <p class="meta">Dokumentasi lengkap: <code>/docs</code> (Swagger UI).</p>
+    </div>
+  </main>
+
+  <script>
+    const fileInput = document.getElementById("file");
+    const bankSelect = document.getElementById("bank");
+    const parseBtn = document.getElementById("parseBtn");
+    const downloadBtn = document.getElementById("download");
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+
+    function fmt(n) {
+      return n.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    parseBtn.addEventListener("click", async () => {
+      const file = fileInput.files[0];
+      if (!file) { statusEl.textContent = "Pilih file PDF dulu."; return; }
+
+      parseBtn.disabled = true;
+      statusEl.textContent = "Parsing...";
+      downloadBtn.style.display = "none";
+
+      const form = new FormData();
+      form.append("file", file);
+      form.append("bank", bankSelect.value);
+
+      let data;
+      try {
+        const resp = await fetch("/parse", { method: "POST", body: form });
+        if (!resp.ok) {
+          const err = await resp.json();
+          throw new Error(err.detail || JSON.stringify(err));
+        }
+        data = await resp.json();
+      } catch (e) {
+        statusEl.textContent = "Gagal.";
+        resultEl.innerHTML = `<div class="error"><strong>Error:</strong> ${e.message.replace(/</g, "&lt;")}</div>`;
+        parseBtn.disabled = false;
+        return;
+      }
+
+      const passed = data.balance_check === "passed";
+      const n = data.transactions.length;
+      const rows = data.transactions
+        .map(t => `<tr><td>${t.date}</td><td>${t.description}</td><td class="num">${t.debit ? fmt(t.debit) : ""}</td><td class="num">${t.credit ? fmt(t.credit) : ""}</td><td class="num">${fmt(t.balance)}</td></tr>`)
+        .join("");
+
+      resultEl.innerHTML = `
+        <div class="card">
+          <h3 style="margin-top:0; font-size:15px;">
+            Hasil Parse
+            <span class="badge ${passed ? "ok" : "fail"}">${passed ? "Balance-check PASSED" : "Balance-check FAILED"}</span>
+          </h3>
+          <p class="meta">
+            <strong>${data.account_name || "—"}</strong> · ${data.account_number || "—"} · ${data.statement_period || "—"} ·
+            Saldo awal ${fmt(data.opening_balance)} → akhir ${fmt(data.closing_balance)}
+          </p>
+          <ul class="meta">
+            <li>${n} transaksi · Total debit ${fmt(data.total_debit)} · Total kredit ${fmt(data.total_credit)}</li>
+            ${data.validation_error ? `<li style="color:#b42318">⚠ ${data.validation_error}</li>` : ""}
+          </ul>
+          <table style="width:100%; border-collapse:collapse; font-size:12.5px; margin-top:10px;">
+            <thead><tr style="text-align:left; border-bottom:2px solid #e3e7ee;">
+              <th style="padding:6px">Tanggal</th><th style="padding:6px">Keterangan</th>
+              <th style="padding:6px; text-align:right">Debit</th><th style="padding:6px; text-align:right">Kredit</th>
+              <th style="padding:6px; text-align:right">Saldo</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0; font-size:15px;">Raw JSON</h3>
+          <pre>${JSON.stringify(data, null, 2).replace(/</g, "&lt;")}</pre>
+        </div>`;
+
+      statusEl.textContent = `Berhasil: ${n} transaksi di-parse (${passed ? "balance cocok" : "balance TIDAK cocok — cek file aslinya")}.`;
+      downloadBtn.style.display = "inline-block";
+      downloadBtn.onclick = async (ev) => {
+        ev.preventDefault();
+        const csvResp = await fetch("/parse?format=csv", { method: "POST", body: form });
+        const blob = await csvResp.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "mutasi.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+      };
+      parseBtn.disabled = false;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocAI — Parse Mutasi BCA PDF ke JSON | Rekening Koran to CSV | OCR NPWP API</title>
+  <meta name="description" content="Parse e-statement BCA, Mandiri, BNI, BRI PDF ke JSON/CSV terstruktur. Zero API cost, balance-check built-in. Untuk akuntan & developer Indonesia.">
+  <meta name="keywords" content="parse mutasi BCA PDF, rekening koran to CSV, ocr NPWP API, e-statement parser, bank statement Indonesia, Jurnal import">
+  <meta property="og:title" content="DocAI — Indonesian Bank E-Statement Parser">
+  <meta property="og:description" content="Parse BCA/Mandiri/BNI/BRI e-statement PDFs into structured JSON. Free, open-source, MIT licensed.">
+  <meta property="og:type" content="website">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #1a1a2e; line-height: 1.6; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+    /* Hero */
+    .hero { background: linear-gradient(135deg, #0f3460, #16213e); color: #fff; padding: 80px 0 60px; text-align: center; }
+    .hero h1 { font-size: 2.4rem; margin-bottom: 12px; }
+    .hero p { font-size: 1.15rem; opacity: 0.9; max-width: 600px; margin: 0 auto 30px; }
+    .hero .tagline { font-size: 0.95rem; opacity: 0.7; margin-top: 8px; }
+    .btn { display: inline-block; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: transform 0.15s; }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: #e94560; color: #fff; }
+    .btn-secondary { background: #fff; color: #0f3460; margin-left: 12px; }
+    .btn-github { background: #24292e; color: #fff; margin-left: 12px; }
+
+    /* Demo */
+    .demo { padding: 60px 0; background: #f8f9fa; }
+    .demo h2 { text-align: center; margin-bottom: 30px; font-size: 1.6rem; }
+    .drop-zone { border: 3px dashed #ccc; border-radius: 12px; padding: 60px 20px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; max-width: 600px; margin: 0 auto 20px; }
+    .drop-zone:hover, .drop-zone.dragover { border-color: #e94560; background: #fff0f3; }
+    .drop-zone p { font-size: 1.1rem; color: #666; }
+    .drop-zone .icon { font-size: 2.5rem; margin-bottom: 10px; }
+    #demo-output { background: #1a1a2e; color: #0f0; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.85rem; max-width: 600px; margin: 0 auto; white-space: pre-wrap; display: none; text-align: left; max-height: 400px; overflow-y: auto; }
+
+    /* Pricing */
+    .pricing { padding: 60px 0; }
+    .pricing h2 { text-align: center; margin-bottom: 10px; font-size: 1.6rem; }
+    .pricing .subtitle { text-align: center; color: #666; margin-bottom: 40px; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+    .price-card { border: 1px solid #e0e0e0; border-radius: 10px; padding: 30px 20px; text-align: center; transition: box-shadow 0.2s; }
+    .price-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .price-card.featured { border-color: #e94560; position: relative; }
+    .price-card.featured::before { content: 'POPULER'; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #e94560; color: #fff; font-size: 0.7rem; padding: 2px 12px; border-radius: 20px; font-weight: 600; }
+    .price-card h3 { font-size: 1.1rem; margin-bottom: 8px; }
+    .price { font-size: 2rem; font-weight: 700; color: #0f3460; }
+    .price span { font-size: 0.9rem; font-weight: 400; color: #666; }
+    .price-card ul { list-style: none; margin: 20px 0; text-align: left; }
+    .price-card li { padding: 6px 0; font-size: 0.9rem; color: #444; }
+    .price-card li::before { content: '✓ '; color: #0f3460; font-weight: 700; }
+    .price-card .btn { width: 100%; text-align: center; }
+
+    /* Features */
+    .features { padding: 60px 0; background: #f8f9fa; }
+    .features h2 { text-align: center; margin-bottom: 40px; font-size: 1.6rem; }
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+    .feature-card h3 { font-size: 1rem; margin-bottom: 8px; color: #0f3460; }
+    .feature-card p { font-size: 0.9rem; color: #555; }
+
+    /* Footer */
+    .footer { padding: 40px 0; text-align: center; font-size: 0.85rem; color: #888; border-top: 1px solid #eee; }
+    .footer a { color: #0f3460; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <h1>Parse E-Statement BCA ke JSON</h1>
+    <p>Upload PDF mutasi bank → dapatkan data transaksi terstruktur. Zero API cost, balance-check built-in.</p>
+    <p class="tagline">Rekening koran to CSV &bull; Open-source &bull; MIT Licensed</p>
+    <a href="#demo" class="btn btn-primary">Coba Demo</a>
+    <a href="https://github.com/docai-id/docai" class="btn btn-github">GitHub</a>
+    <a href="#pricing" class="btn btn-secondary">Lihat Harga</a>
+  </div>
+</section>
+
+<!-- Live Demo -->
+<section class="demo" id="demo">
+  <div class="container">
+    <h2>LIVE DEMO</h2>
+    <div class="drop-zone" id="drop-zone">
+      <div class="icon">📄</div>
+      <p>Drag & drop e-statement PDF di sini<br><small>atau klik untuk pilih file</small></p>
+      <input type="file" id="file-input" accept=".pdf" style="display:none">
+    </div>
+    <pre id="demo-output"></pre>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features">
+  <div class="container">
+    <h2>Kenapa DocAI?</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>Zero LLM Cost</h3>
+        <p>Parsing deterministik — tidak ada biaya API per dokumen. COGS hampir nol untuk format yang sudah dikenal.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Balance-Check Built-in</h3>
+        <p>Setiap hasil diverifikasi: debit + credit harus cocok dengan saldo. Data yang tidak cocok ditolak.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Indonesian-Aware</h3>
+        <p>Format "DB"/"CR", angka 1.234.567,89, DOB-locked PDF — semua ditangani dengan pesan error yang jelas.</p>
+      </div>
+      <div class="feature-card">
+        <h3>Accountant-Ready Output</h3>
+        <p>Output siap import ke Jurnal, Accurate, Kledo. JSON + CSV, field lengkap.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing" id="pricing">
+  <div class="container">
+    <h2>Harga</h2>
+    <p class="subtitle">Mulai gratis. Upgrade saat butuh lebih.</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>Free</h3>
+        <div class="price">Rp0 <span>/ bulan</span></div>
+        <ul>
+          <li>20 dokumen/bulan</li>
+          <li>BCA parser</li>
+          <li>JSON output</li>
+          <li>Watermark</li>
+        </ul>
+        <a href="#demo" class="btn btn-secondary" style="border:1px solid #0f3460;">Mulai Gratis</a>
+      </div>
+      <div class="price-card">
+        <h3>Developer</h3>
+        <div class="price">Rp99k <span>/ bulan</span></div>
+        <ul>
+          <li>500 dokumen/bulan</li>
+          <li>BCA + Mandiri</li>
+          <li>JSON + CSV export</li>
+          <li>API access</li>
+          <li>No watermark</li>
+        </ul>
+        <a href="https://rapidapi.com" class="btn btn-primary">Daftar di RapidAPI</a>
+      </div>
+      <div class="price-card featured">
+        <h3>Pro</h3>
+        <div class="price">Rp299k <span>/ bulan</span></div>
+        <ul>
+          <li>5.000 dokumen/bulan</li>
+          <li>Semua bank</li>
+          <li>Batch upload</li>
+          <li>KTP/NPWP extraction</li>
+          <li>Template Jurnal/Accurate/Kledo</li>
+        </ul>
+        <a href="mailto:hello@docai.id" class="btn btn-primary">Hubungi Kami</a>
+      </div>
+      <div class="price-card">
+        <h3>Firma</h3>
+        <div class="price">Rp300–500k <span>/ bulan</span></div>
+        <ul>
+          <li>Unlimited internal use</li>
+          <li>Semua fitur Pro</li>
+          <li>Whitelabel option</li>
+          <li>Dedicated support</li>
+        </ul>
+        <a href="mailto:hello@docai.id" class="btn btn-secondary" style="border:1px solid #0f3460;">Diskusi</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <p>DocAI &copy; 2026 &bull; Open-source under <a href="https://github.com/docai-id/docai/blob/main/LICENSE">MIT License</a> &bull; <a href="mailto:hello@docai.id">hello@docai.id</a></p>
+  </div>
+</footer>
+
+<script>
+(function() {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const output = document.getElementById('demo-output');
+
+  // Click to upload
+  dropZone.addEventListener('click', () => fileInput.click());
+
+  // Drag events
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    handleFile(e.dataTransfer.files[0]);
+  });
+
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+  function handleFile(file) {
+    if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
+      output.style.display = 'block';
+      output.textContent = '⚠ Error: Hanya file PDF yang diterima.';
+      return;
+    }
+
+    // Demo: show sample response (real API call would go here)
+    output.style.display = 'block';
+    output.textContent = `📂 File: ${file.name}\n📐 Size: ${(file.size / 1024).toFixed(1)} KB\n\n⏳ Parsing...\n\n`;
+
+    // Simulated API response after 800ms
+    setTimeout(() => {
+      const demoResponse = {
+        bank: "bca",
+        account_number: "1234567890",
+        account_name: "BUDI SETIAWAN",
+        statement_period: "01/01/2026 - 31/01/2026",
+        opening_balance: 1000000.00,
+        closing_balance: 4250000.00,
+        currency: "IDR",
+        transactions: [
+          { date: "02/01/2026", description: "TRSF E-BANKING BCA", debit: 0, credit: 500000, balance: 1500000 },
+          { date: "03/01/2026", description: "ATM WD BCA KCP THAMRIN", debit: 250000, credit: 0, balance: 1250000 },
+          { date: "05/01/2026", description: "TRANSFER MASUK dari PT MAJU JAYA", debit: 0, credit: 3000000, balance: 4250000 },
+        ],
+        balance_check: "passed",
+        total_debit: 250000,
+        total_credit: 3500000,
+        note: "⚠ This is sample data — connect the API for real parsing."
+      };
+      output.textContent = JSON.stringify(demoResponse, null, 2);
+    }, 800);
+  }
+})();
+</script>
+
+</body>
+</html>

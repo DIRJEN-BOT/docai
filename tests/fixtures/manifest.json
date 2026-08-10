@@ -1,0 +1,210 @@
+{
+  "happy_path": {
+    "path": "C:\\Users\\MSI\\business-exploration\\docai\\tests\\fixtures\\bca_happy_path.pdf",
+    "account_number": "1234567890",
+    "account_name": "BUDI SETIAWAN",
+    "period": "01/01/2026 - 31/01/2026",
+    "opening_balance": "1000000",
+    "closing_balance": "5225000.00",
+    "num_transactions": 8,
+    "total_debit": "1525000",
+    "total_credit": "5750000",
+    "transactions": [
+      {
+        "date": "02/01/2026",
+        "description": "TRSF E-BANKING BCA",
+        "debit": 0,
+        "credit": 500000
+      },
+      {
+        "date": "03/01/2026",
+        "description": "ATM WD BCA KCP THAMRIN",
+        "debit": 250000,
+        "credit": 0
+      },
+      {
+        "date": "05/01/2026",
+        "description": "TRANSFER MASUK dari PT MAJU JAYA",
+        "debit": 0,
+        "credit": 3000000
+      },
+      {
+        "date": "07/01/2026",
+        "description": "PEMBAYARAN LISTRIK PLN",
+        "debit": 750000,
+        "credit": 0
+      },
+      {
+        "date": "10/01/2026",
+        "description": "SETORAN TUNAI",
+        "debit": 0,
+        "credit": 1500000
+      },
+      {
+        "date": "15/01/2026",
+        "description": "BIAYA ADM BULANAN",
+        "debit": 25000,
+        "credit": 0
+      },
+      {
+        "date": "20/01/2026",
+        "description": "TRANSFER dari PT SEJAHTERA",
+        "debit": 0,
+        "credit": 750000
+      },
+      {
+        "date": "25/01/2026",
+        "description": "ATM WD BCA GADING",
+        "debit": 500000,
+        "credit": 0
+      }
+    ]
+  },
+  "balance_mismatch": {
+    "path": "C:\\Users\\MSI\\business-exploration\\docai\\tests\\fixtures\\bca_balance_mismatch.pdf",
+    "account_number": "9876543210",
+    "account_name": "SITI RAHMAWATI",
+    "period": "01/01/2026 - 31/01/2026",
+    "opening_balance": "500000",
+    "declared_closing_balance": "2000000",
+    "actual_closing_balance": "1500000",
+    "num_transactions": 1
+  },
+  "credit_only": {
+    "path": "C:\\Users\\MSI\\business-exploration\\docai\\tests\\fixtures\\bca_credit_only.pdf",
+    "account_number": "5555666677",
+    "account_name": "DEWI KARTIKA",
+    "opening_balance": "200000",
+    "closing_balance": "10700000.00",
+    "num_transactions": 2,
+    "transactions": [
+      {
+        "date": "01/01/2026",
+        "description": "GAJI JANUARI 2026",
+        "debit": 0,
+        "credit": 8500000
+      },
+      {
+        "date": "15/01/2026",
+        "description": "BONUS PRODUKSI",
+        "debit": 0,
+        "credit": 2000000
+      }
+    ]
+  },
+  "large_values": {
+    "path": "C:\\Users\\MSI\\business-exploration\\docai\\tests\\fixtures\\bca_large_values.pdf",
+    "account_number": "3333444455",
+    "account_name": "PT MAKMUR JAYA",
+    "opening_balance": "75000000",
+    "closing_balance": "99750000.00",
+    "num_transactions": 4,
+    "total_debit": "35250000",
+    "total_credit": "60000000",
+    "transactions": [
+      {
+        "date": "05/01/2026",
+        "description": "TRANSFER MASUK PT ABADI SENTOSA",
+        "debit": 0,
+        "credit": 50000000
+      },
+      {
+        "date": "10/01/2026",
+        "description": "PEMBAYARAN SUPPLIER CV BERSAMA",
+        "debit": 35000000,
+        "credit": 0
+      },
+      {
+        "date": "15/01/2026",
+        "description": "SETORAN TUNAI",
+        "debit": 0,
+        "credit": 10000000
+      },
+      {
+        "date": "20/01/2026",
+        "description": "BIAYA TRANSFER INTL",
+        "debit": 250000,
+        "credit": 0
+      }
+    ]
+  },
+  "native_format": {
+    "path": "C:\\Users\\MSI\\business-exploration\\docai\\tests\\fixtures\\bca_native.pdf",
+    "account_number": "1234567890",
+    "account_name": "BUDI SETIAWAN",
+    "period": "JANUARI 2026",
+    "opening_balance": "1000000",
+    "closing_balance": "9929972.00",
+    "num_transactions": 6,
+    "total_debit": "1025000",
+    "total_credit": "9954972",
+    "transactions": [
+      {
+        "date": "02/01",
+        "description": "KR OTOMATIS MID : 885001061193",
+        "extra_lines": [
+          "BUDI MART",
+          "QR :    5001000.00",
+          "DDR:      35007.00"
+        ],
+        "debit": 0,
+        "credit": 4965993,
+        "code": "0998"
+      },
+      {
+        "date": "03/01",
+        "description": "TRSF E-BANKING DB 0301/FTSCY/WS95051",
+        "extra_lines": [
+          "ATM THAMRIN",
+          "250000.00"
+        ],
+        "debit": 250000,
+        "credit": 0,
+        "raw_amount": "250000.00",
+        "show_label": true,
+        "show_balance": false
+      },
+      {
+        "date": "03/01",
+        "description": "TRSF E-BANKING DB 0301/FTSCY/WS95051",
+        "extra_lines": [
+          "LISTRIK PLN",
+          "750000.00"
+        ],
+        "debit": 750000,
+        "credit": 0,
+        "raw_amount": "750000.00",
+        "show_label": true
+      },
+      {
+        "date": "05/01",
+        "description": "BI-FAST CR BIF TRANSFER DR",
+        "extra_lines": [
+          "535",
+          "PT MAJU JAYA"
+        ],
+        "debit": 0,
+        "credit": 3000000
+      },
+      {
+        "date": "07/01",
+        "description": "KR OTOMATIS MID : 885001061193",
+        "extra_lines": [
+          "BUDI MART",
+          "QR :    2003000.00",
+          "DDR:       14021.00"
+        ],
+        "debit": 0,
+        "credit": 1988979,
+        "code": "0998"
+      },
+      {
+        "date": "15/01",
+        "description": "BIAYA ADM",
+        "debit": 25000,
+        "credit": 0,
+        "single_line": true
+      }
+    ]
+  }
+}
