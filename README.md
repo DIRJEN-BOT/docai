@@ -1,6 +1,7 @@
 # DocAI — Indonesian Bank E-Statement Parser
 
 [![CI](https://github.com/oyi77/docai/actions/workflows/ci.yml/badge.svg)](https://github.com/oyi77/docai/actions/workflows/ci.yml)
+[![Site](https://img.shields.io/badge/site-oyi77.is--a.dev%2Fdocai-blue)](https://oyi77.is-a.dev/docai/)
 
 Extract structured transaction data from Indonesian bank e-statement PDFs (BCA, Mandiri, BNI, BRI) into clean JSON/CSV.
 
