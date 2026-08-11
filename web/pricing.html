@@ -173,7 +173,7 @@
         <li>Webhook callbacks</li>
         <li>Higher rate limits</li>
       </ul>
-      <a href="/contact.html" class="card-cta secondary">Contact Sales</a>
+      <button onclick="startCheckout('starter')" class="card-cta secondary">Subscribe Now</button>
     </div>
 
     <!-- Growth (Popular) -->
@@ -188,7 +188,7 @@
         <li>Custom bank formats</li>
         <li>SLA guarantee (99.9%)</li>
       </ul>
-      <a href="/contact.html" class="card-cta primary">Contact Sales</a>
+      <button onclick="startCheckout('growth')" class="card-cta primary">Subscribe Now</button>
     </div>
 
     <!-- Business -->
@@ -202,7 +202,7 @@
         <li>On-premise deployment</li>
         <li>Custom integrations</li>
       </ul>
-      <a href="/contact.html" class="card-cta secondary">Contact Sales</a>
+      <button onclick="startCheckout('scale')" class="card-cta secondary">Subscribe Now</button>
     </div>
 
   </div>
@@ -258,5 +258,31 @@
   <div class="footer-tagline">DocAI Verify — Income Verification API for Indonesian Fintech</div>
 </footer>
 
+<script>
+function startCheckout(tier) {
+  var email = prompt('Enter your email address to subscribe:');
+  if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    alert('Please enter a valid email address.');
+    return;
+  }
+  var apiKey = localStorage.getItem('docai_api_key') || '';
+  fetch('/create-checkout-session', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({tier: tier, email: email, api_key: apiKey})
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    if (data.checkout_url) {
+      window.location.href = data.checkout_url;
+    } else {
+      alert(data.message || data.error || 'Checkout failed. Please try again.');
+    }
+  })
+  .catch(function() {
+    alert('Network error. Please try again.');
+  });
+}
+</script>
 </body>
 </html>

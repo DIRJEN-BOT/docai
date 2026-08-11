@@ -1,0 +1,873 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "DocAI Verify",
+    "description": "Income verification API for Indonesian fintech. Parse BCA & Mandiri bank e-statement PDFs into structured income data with fraud detection.",
+    "version": "2.0.0",
+    "contact": {
+      "name": "DocAI Support",
+      "email": "support@docai.id",
+      "url": "https://docaiid.pythonanywhere.com"
+    },
+    "license": {
+      "name": "Proprietary",
+      "url": "https://docaiid.pythonanywhere.com/terms"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://docaiid.pythonanywhere.com",
+      "description": "Production"
+    },
+    {
+      "url": "http://localhost:8000",
+      "description": "Local development"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Service health and status checks"
+    },
+    {
+      "name": "Parse",
+      "description": "PDF bank statement parsing"
+    },
+    {
+      "name": "Verify",
+      "description": "Income verification and scoring"
+    },
+    {
+      "name": "Account",
+      "description": "API key management and signup"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health check",
+        "description": "Returns service status and list of supported banks. No authentication required.",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                },
+                "example": {
+                  "status": "ok",
+                  "banks": ["bca", "mandiri"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/parse": {
+      "post": {
+        "tags": ["Parse"],
+        "summary": "Parse bank statement PDF",
+        "description": "Upload a bank e-statement PDF and receive structured transaction data in JSON or CSV format. Supports BCA and Mandiri banks. Password-protected PDFs (DOB-based) can be decrypted by providing the password.",
+        "operationId": "parseStatement",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Bank statement PDF file (max 10MB)"
+                  },
+                  "bank": {
+                    "type": "string",
+                    "default": "bca",
+                    "description": "Bank identifier",
+                    "enum": ["bca", "mandiri"],
+                    "example": "bca"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "PDF password (DOB in DDMMYYYY format, e.g. '15061990') for encrypted statements",
+                    "example": "15061990"
+                  }
+                }
+              },
+              "encoding": {
+                "file": {
+                  "contentType": "application/pdf"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Response format",
+            "schema": {
+              "type": "string",
+              "enum": ["json", "csv"],
+              "default": "json"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Parsed statement data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParseResponse"
+                },
+                "example": {
+                  "bank": "bca",
+                  "account_number": "1234567890",
+                  "account_name": "BUDI SETIAWAN",
+                  "statement_period": "01/01/2026 - 31/01/2026",
+                  "opening_balance": 8686161.00,
+                  "closing_balance": 748577.00,
+                  "total_debit": 7987584.00,
+                  "total_credit": 50000.00,
+                  "transaction_count": 6,
+                  "currency": "IDR",
+                  "transactions": [
+                    {
+                      "date": "05/01/2026",
+                      "description": "Transfer BNI - PRIYO DWI CAHYONO",
+                      "debit": 0.00,
+                      "credit": 50000.00,
+                      "balance": 8736161.00,
+                      "reference": ""
+                    },
+                    {
+                      "date": "10/01/2026",
+                      "description": "Virtual Account TOKOPEDIA - PLSTOKOPEDIAANDI",
+                      "debit": 2210784.00,
+                      "credit": 0.00,
+                      "balance": 6525377.00,
+                      "reference": ""
+                    },
+                    {
+                      "date": "15/01/2026",
+                      "description": "Tarik Tunai ATM",
+                      "debit": 1500000.00,
+                      "credit": 0.00,
+                      "balance": 5025377.00,
+                      "reference": ""
+                    }
+                  ]
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string",
+                  "example": "date,description,debit,credit,balance,reference\n05/01/2026,Transfer BNI - PRIYO DWI CAHYONO,0.00,50000.00,8736161.00,\n10/01/2026,Virtual Account TOKOPEDIA,2210784.00,0.00,6525377.00,\n15/01/2026,Tarik Tunai ATM,1500000.00,0.00,5025377.00,"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request (bad format, missing file, password error, parse error)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "missing_file": {
+                    "summary": "No file uploaded",
+                    "value": {
+                      "error": "invalid_request",
+                      "message": "No file uploaded (field 'file')"
+                    }
+                  },
+                  "password_error": {
+                    "summary": "Wrong PDF password",
+                    "value": {
+                      "error": "password_protected",
+                      "message": "PDF is password-protected. Provide the password (DOB in DDMMYYYY format)."
+                    }
+                  },
+                  "parse_error": {
+                    "summary": "Unrecognized bank format",
+                    "value": {
+                      "error": "parse_error",
+                      "message": "Unable to detect BCA format in PDF text."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "unauthorized",
+                  "message": "Missing or invalid X-API-Key header"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "File too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "invalid_request",
+                  "message": "File too large (max 10MB)"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitError"
+                },
+                "example": {
+                  "error": "rate_limit_exceeded",
+                  "message": "Monthly request limit reached",
+                  "limit": 100,
+                  "remaining": 0,
+                  "reset": "2026-09-01T00:00:00Z"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "internal_error",
+                  "message": "ParseError: Failed to read PDF"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verify-income": {
+      "post": {
+        "tags": ["Verify"],
+        "summary": "Verify income from bank statement",
+        "description": "Parse a bank statement PDF and return a comprehensive income verification report. The report includes detected monthly income, income source classification, consistency scoring, and fraud detection flags. Ideal for credit assessment and P2P lending due diligence.",
+        "operationId": "verifyIncome",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Bank statement PDF file (max 10MB)"
+                  },
+                  "bank": {
+                    "type": "string",
+                    "default": "bca",
+                    "description": "Bank identifier",
+                    "enum": ["bca", "mandiri"],
+                    "example": "bca"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "PDF password (DOB in DDMMYYYY format)",
+                    "example": "15061990"
+                  }
+                }
+              },
+              "encoding": {
+                "file": {
+                  "contentType": "application/pdf"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Income verification report",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyIncomeResponse"
+                },
+                "example": {
+                  "verification_score": 82,
+                  "confidence": "high",
+                  "detected_monthly_income": 12500000.00,
+                  "income_source": "salary",
+                  "salary_months_detected": 3,
+                  "monthly_incomes": [
+                    {
+                      "month": "2026-01",
+                      "amount": 12500000.00,
+                      "source": "salary"
+                    },
+                    {
+                      "month": "2026-02",
+                      "amount": 12500000.00,
+                      "source": "salary"
+                    },
+                    {
+                      "month": "2026-03",
+                      "amount": 12500000.00,
+                      "source": "salary"
+                    }
+                  ],
+                  "consistency_score": 95,
+                  "income_cv": 0.02,
+                  "has_gaps": false,
+                  "gap_months": [],
+                  "fraud_flags": [],
+                  "statement_period": "Jan 2026 - Mar 2026",
+                  "balance_valid": true,
+                  "bank": "bca",
+                  "account_number": "1234567890"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "no_file": {
+                    "summary": "No file uploaded",
+                    "value": {
+                      "error": "invalid_request",
+                      "message": "No file uploaded (field 'file')"
+                    }
+                  },
+                  "wrong_password": {
+                    "summary": "Incorrect password",
+                    "value": {
+                      "error": "password_protected",
+                      "message": "PDF is password-protected. Provide the password (DOB in DDMMYYYY format)."
+                    }
+                  },
+                  "unsupported_bank": {
+                    "summary": "Unrecognized format",
+                    "value": {
+                      "error": "parse_error",
+                      "message": "Unable to detect bank format in PDF text."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "unauthorized",
+                  "message": "Missing or invalid X-API-Key header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitError"
+                },
+                "example": {
+                  "error": "rate_limit_exceeded",
+                  "message": "Monthly request limit reached",
+                  "limit": 100,
+                  "remaining": 0,
+                  "reset": "2026-09-01T00:00:00Z"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "internal_error",
+                  "message": "ParseError: Failed to read PDF"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/signup": {
+      "get": {
+        "tags": ["Account"],
+        "summary": "Signup form",
+        "description": "Returns an HTML form for generating a free API key. No authentication required.",
+        "operationId": "getSignupForm",
+        "responses": {
+          "200": {
+            "description": "HTML signup form",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Account"],
+        "summary": "Generate API key",
+        "description": "Generate a free-tier API key. Rate-limited to 3 signups per IP per 24 hours.",
+        "operationId": "createApiKey",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address for API key delivery",
+                    "example": "cto@fintech-id.com"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "API key generated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignupResponse"
+                },
+                "example": {
+                  "api_key": "docai-a1b2c3d4-free",
+                  "tier": "free",
+                  "message": "API key generated. Save this key — it cannot be retrieved later.",
+                  "rate_limit": "100 requests/month"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "invalid_request",
+                  "message": "Invalid email format"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Signup rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "rate_limit_exceeded",
+                  "message": "Too many signup attempts. Try again in 24 hours."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/docs": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Swagger UI",
+        "description": "Interactive API documentation powered by Swagger UI. No authentication required.",
+        "operationId": "getDocs",
+        "responses": {
+          "200": {
+            "description": "Swagger UI HTML page",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "Your DocAI API key. Get one free at https://docaiid.pythonanywhere.com/signup"
+      }
+    },
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "ok"
+          },
+          "banks": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["bca", "mandiri"]
+          }
+        }
+      },
+      "ParseResponse": {
+        "type": "object",
+        "properties": {
+          "bank": {
+            "type": "string",
+            "description": "Detected bank identifier",
+            "example": "bca"
+          },
+          "account_number": {
+            "type": "string",
+            "description": "Bank account number",
+            "example": "1234567890"
+          },
+          "account_name": {
+            "type": "string",
+            "description": "Account holder name",
+            "example": "BUDI SETIAWAN"
+          },
+          "statement_period": {
+            "type": "string",
+            "description": "Statement period as shown on PDF",
+            "example": "01/01/2026 - 31/01/2026"
+          },
+          "opening_balance": {
+            "type": "number",
+            "format": "double",
+            "description": "Opening balance in IDR",
+            "example": 8686161.00
+          },
+          "closing_balance": {
+            "type": "number",
+            "format": "double",
+            "description": "Closing balance in IDR",
+            "example": 748577.00
+          },
+          "total_debit": {
+            "type": "number",
+            "format": "double",
+            "description": "Sum of all debit transactions in IDR",
+            "example": 7987584.00
+          },
+          "total_credit": {
+            "type": "number",
+            "format": "double",
+            "description": "Sum of all credit transactions in IDR",
+            "example": 50000.00
+          },
+          "transaction_count": {
+            "type": "integer",
+            "description": "Number of transactions parsed",
+            "example": 6
+          },
+          "currency": {
+            "type": "string",
+            "description": "Currency code",
+            "example": "IDR"
+          },
+          "transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Transaction"
+            }
+          }
+        }
+      },
+      "Transaction": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Transaction date (DD/MM/YYYY)",
+            "example": "05/01/2026"
+          },
+          "description": {
+            "type": "string",
+            "description": "Transaction description",
+            "example": "Transfer BNI - PRIYO DWI CAHYONO"
+          },
+          "debit": {
+            "type": "number",
+            "format": "double",
+            "description": "Debit amount in IDR (0 if credit)",
+            "example": 0.00
+          },
+          "credit": {
+            "type": "number",
+            "format": "double",
+            "description": "Credit amount in IDR (0 if debit)",
+            "example": 50000.00
+          },
+          "balance": {
+            "type": "number",
+            "format": "double",
+            "description": "Running balance after transaction in IDR",
+            "example": 8736161.00
+          },
+          "reference": {
+            "type": "string",
+            "description": "Transaction reference number (if available)",
+            "example": ""
+          }
+        }
+      },
+      "VerifyIncomeResponse": {
+        "type": "object",
+        "properties": {
+          "verification_score": {
+            "type": "integer",
+            "description": "Composite verification score (0-100)",
+            "example": 82
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+            "description": "Confidence level based on verification score",
+            "example": "high"
+          },
+          "detected_monthly_income": {
+            "type": "number",
+            "format": "double",
+            "description": "Best estimate of monthly income in IDR",
+            "example": 12500000.00
+          },
+          "income_source": {
+            "type": "string",
+            "enum": ["salary", "mixed", "freelance", "business", "undetected"],
+            "description": "Classified income source type",
+            "example": "salary"
+          },
+          "salary_months_detected": {
+            "type": "integer",
+            "description": "Number of months with detected salary transactions",
+            "example": 3
+          },
+          "monthly_incomes": {
+            "type": "array",
+            "description": "Monthly income breakdown",
+            "items": {
+              "type": "object",
+              "properties": {
+                "month": {
+                  "type": "string",
+                  "description": "Month key (YYYY-MM)",
+                  "example": "2026-01"
+                },
+                "amount": {
+                  "type": "number",
+                  "format": "double",
+                  "description": "Total income for this month in IDR",
+                  "example": 12500000.00
+                },
+                "source": {
+                  "type": "string",
+                  "description": "Income source for this month",
+                  "example": "salary"
+                }
+              }
+            }
+          },
+          "consistency_score": {
+            "type": "integer",
+            "description": "Income consistency score (0-100, higher = more stable)",
+            "example": 95
+          },
+          "income_cv": {
+            "type": "number",
+            "format": "double",
+            "description": "Coefficient of variation of monthly income",
+            "example": 0.02
+          },
+          "has_gaps": {
+            "type": "boolean",
+            "description": "Whether there are months with zero income",
+            "example": false
+          },
+          "gap_months": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of months with no income detected",
+            "example": []
+          },
+          "fraud_flags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Detected fraud or anomaly signals",
+            "example": []
+          },
+          "statement_period": {
+            "type": "string",
+            "description": "Parsed statement period",
+            "example": "Jan 2026 - Mar 2026"
+          },
+          "balance_valid": {
+            "type": "boolean",
+            "description": "Whether opening + credits - debits = closing balance",
+            "example": true
+          },
+          "bank": {
+            "type": "string",
+            "description": "Detected bank identifier",
+            "example": "bca"
+          },
+          "account_number": {
+            "type": "string",
+            "description": "Bank account number",
+            "example": "1234567890"
+          }
+        }
+      },
+      "SignupResponse": {
+        "type": "object",
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "description": "Generated API key",
+            "example": "docai-a1b2c3d4-free"
+          },
+          "tier": {
+            "type": "string",
+            "description": "Assigned tier",
+            "example": "free"
+          },
+          "message": {
+            "type": "string",
+            "description": "Status message",
+            "example": "API key generated. Save this key — it cannot be retrieved later."
+          },
+          "rate_limit": {
+            "type": "string",
+            "description": "Rate limit description",
+            "example": "100 requests/month"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": ["error", "message"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Machine-readable error code",
+            "example": "unauthorized"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error description",
+            "example": "Missing or invalid X-API-Key header"
+          }
+        }
+      },
+      "RateLimitError": {
+        "type": "object",
+        "required": ["error", "message", "limit", "remaining", "reset"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "rate_limit_exceeded"
+          },
+          "message": {
+            "type": "string",
+            "example": "Monthly request limit reached"
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum requests per billing cycle",
+            "example": 100
+          },
+          "remaining": {
+            "type": "integer",
+            "description": "Remaining requests this cycle",
+            "example": 0
+          },
+          "reset": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the rate limit resets (ISO 8601)",
+            "example": "2026-09-01T00:00:00Z"
+          }
+        }
+      }
+    }
+  }
+}

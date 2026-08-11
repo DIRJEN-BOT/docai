@@ -36,6 +36,13 @@ from docai.parsers.registry import get_parser, list_banks
 from docai.serialization import result_to_csv, result_to_dict
 from docai.validation import ValidationError, validate_statement
 
+# --- Stripe (optional, configured via env vars) ------------------------------
+
+try:
+    import stripe as _stripe  # type: ignore[import-untyped]
+except ImportError:
+    _stripe = None  # type: ignore[assignment]
+
 WEB_DIR = Path(__file__).resolve().parent.parent.parent / "web"
 _USAGE_FILE = Path(__file__).resolve().parent / "usage.json"
 _CONTACT_FILE = Path(__file__).resolve().parent / "contact_messages.json"
@@ -57,7 +64,7 @@ API_KEYS: dict[str, dict] = {
     "docai-dev-key-12345": {"tier": "free", "name": "Development"},
 }
 
-_EXEMPT_PATHS = frozenset({"/health", "/", "/docs", "/openapi.json", "/signup", "/contact"})
+_EXEMPT_PATHS = frozenset({"/health", "/", "/docs", "/openapi.json", "/signup", "/contact", "/create-checkout-session", "/stripe-webhook", "/customer-portal"})
 
 
 def _check_api_key(environ) -> None:
@@ -885,11 +892,13 @@ _SWAGGER_UI_HTML = """<!DOCTYPE html>
     <title>DocAI Verify — API Docs</title>
     <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui.css" />
     <style>
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
             padding: 0;
-            background: #f8f9fa;
+            background: #0b1f3a;
+            color: #e2e8f0;
         }
         .topbar {
             background: #1a1a2e;
@@ -897,6 +906,7 @@ _SWAGGER_UI_HTML = """<!DOCTYPE html>
             display: flex;
             align-items: center;
             gap: 16px;
+            flex-wrap: wrap;
         }
         .topbar img {
             height: 32px;
@@ -910,12 +920,86 @@ _SWAGGER_UI_HTML = """<!DOCTYPE html>
             color: #4fc3f7;
             text-decoration: none;
             font-size: 14px;
+        }
+        .topbar-links {
             margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .cta-btn {
+            display: inline-block;
+            background: #0e7a3d;
+            color: #fff !important;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: background 0.2s;
+        }
+        .cta-btn:hover {
+            background: #10a34e;
+        }
+        .try-banner {
+            background: #142640;
+            border-bottom: 1px solid #2D3748;
+            padding: 10px 24px;
+            text-align: center;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        .try-banner a {
+            color: #4ade80;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .try-banner a:hover {
+            text-decoration: underline;
         }
         #swagger-ui {
             max-width: 960px;
             margin: 0 auto;
             padding: 16px;
+        }
+        /* Swagger UI overrides for dark theme */
+        #swagger-ui .scheme-container {
+            background: #0f2744 !important;
+            box-shadow: none !important;
+        }
+        #swagger-ui .opblock .opblock-summary {
+            border-color: #2D3748;
+        }
+        #swagger-ui .opblock.opblock-get { border-color: #3182ce; }
+        #swagger-ui .opblock.opblock-post { border-color: #38a169; }
+        #swagger-ui .opblock.opblock-put { border-color: #d69e2e; }
+        #swagger-ui .opblock.opblock-delete { border-color: #e53e3e; }
+        #swagger-ui .btn {
+            font-family: inherit;
+        }
+        #swagger-ui .model-box {
+            background: #0f2744;
+        }
+        #swagger-ui table thead tr td,
+        #swagger-ui table thead tr th {
+            border-bottom: 1px solid #2D3748;
+        }
+        /* Responsive */
+        @media (max-width: 640px) {
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .topbar-links {
+                margin-left: 0;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            #swagger-ui {
+                padding: 8px;
+            }
         }
     </style>
 </head>
@@ -923,7 +1007,14 @@ _SWAGGER_UI_HTML = """<!DOCTYPE html>
     <div class="topbar">
         <img src="https://docaiid.pythonanywhere.com/assets/logo_docai_400.png" alt="DocAI" onerror="this.style.display='none'">
         <h1>DocAI Verify API</h1>
-        <a href="/openapi.json">OpenAPI Spec</a>
+        <div class="topbar-links">
+            <a href="/openapi.json">OpenAPI Spec</a>
+            <a href="/signup" class="cta-btn">🔑 Get Free API Key</a>
+        </div>
+    </div>
+    <div class="try-banner">
+        Try the API live — demo key pre-loaded. Or
+        <a href="/signup">get your own key</a> &rarr;
     </div>
     <div id="swagger-ui"></div>
     <script src="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-bundle.js"></script>
@@ -933,7 +1024,19 @@ _SWAGGER_UI_HTML = """<!DOCTYPE html>
             dom_id: '#swagger-ui',
             deepLinking: true,
             presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
-            layout: "BaseLayout"
+            layout: "BaseLayout",
+            requestInterceptor: function(req) {
+                if (req.headers && !req.headers['X-API-Key']) {
+                    req.headers['X-API-Key'] = 'docai-dev-key-12345';
+                }
+                return req;
+            },
+            onComplete: function() {
+                var input = document.querySelector('.swagger-ui .auth-container input[type=text], .swagger-ui .auth-container input[name=apiKey]');
+                if (input) {
+                    input.value = 'docai-dev-key-12345';
+                }
+            }
         });
     </script>
 </body>
@@ -1256,6 +1359,176 @@ def _check_signup_rate(ip: str) -> bool:
     return True
 
 
+# --- Stripe Checkout ----------------------------------------------------------
+
+_STRIPE_PRICE_MAP = {
+    "starter": os.environ.get("STRIPE_PRICE_STARTER", "price_starter_monthly"),
+    "growth": os.environ.get("STRIPE_PRICE_GROWTH", "price_growth_monthly"),
+    "scale": os.environ.get("STRIPE_PRICE_SCALE", "price_scale_monthly"),
+}
+
+
+def _get_stripe_key():
+    """Get Stripe secret key from environment, or None if not configured."""
+    return os.environ.get("STRIPE_SECRET_KEY")
+
+
+def _handle_create_checkout_session(environ, start_response):
+    """POST /create-checkout-session -- create a Stripe Checkout session."""
+    stripe_key = _get_stripe_key()
+    if not stripe_key or _stripe is None:
+        return _json_response(
+            start_response,
+            "503 Service Unavailable",
+            {"error": "stripe_not_configured", "message": "Stripe is not configured. Contact support to upgrade."},
+        )
+
+    length = int(environ.get("CONTENT_LENGTH") or "0")
+    if length <= 0:
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "Empty request body"},
+        )
+    raw = environ["wsgi.input"].read(length)
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "Invalid JSON"},
+        )
+
+    tier = (data.get("tier") or "").strip().lower()
+    email = (data.get("email") or "").strip()
+    api_key = (data.get("api_key") or "").strip()
+
+    if tier not in _STRIPE_PRICE_MAP:
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": f"Invalid tier: {tier}. Must be one of: {', '.join(_STRIPE_PRICE_MAP)}"},
+        )
+    if not email or not _EMAIL_RE.match(email):
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "Valid email is required"},
+        )
+
+    _stripe.api_key = stripe_key
+    price_id = _STRIPE_PRICE_MAP[tier]
+    host = environ.get("HTTP_HOST", "docaiid.pythonanywhere.com")
+    scheme = "https"
+
+    try:
+        session = _stripe.checkout.Session.create(
+            mode="subscription",
+            line_items=[{"price": price_id, "quantity": 1}],
+            customer_email=email,
+            metadata={"api_key": api_key, "tier": tier},
+            success_url=f"{scheme}://{host}/signup?upgraded={tier}",
+            cancel_url=f"{scheme}://{host}/pricing.html",
+        )
+        return _json_response(start_response, "200 OK", {
+            "checkout_url": session.url,
+            "session_id": session.id,
+        })
+    except _stripe.error.StripeError as e:
+        return _json_response(
+            start_response, "500 Internal Server Error",
+            {"error": "stripe_error", "message": str(e)},
+        )
+
+
+def _handle_stripe_webhook(environ, start_response):
+    """POST /stripe-webhook -- handle Stripe webhook events."""
+    stripe_key = _get_stripe_key()
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
+    if not stripe_key or not webhook_secret or _stripe is None:
+        return _json_response(
+            start_response,
+            "503 Service Unavailable",
+            {"error": "stripe_not_configured", "message": "Stripe webhook not configured."},
+        )
+
+    length = int(environ.get("CONTENT_LENGTH") or "0")
+    raw = environ["wsgi.input"].read(length)
+    sig_header = environ.get("HTTP_STRIPE_SIGNATURE", "")
+
+    try:
+        event = _stripe.Webhook.construct_event(raw, sig_header, webhook_secret)
+    except (ValueError, _stripe.error.SignatureVerificationError) as e:
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_webhook", "message": f"Webhook verification failed: {e}"},
+        )
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        api_key = (session.get("metadata") or {}).get("api_key")
+        tier = (session.get("metadata") or {}).get("tier")
+        if api_key and tier and tier in TIER_LIMITS:
+            usage = _load_usage()
+            if api_key in usage:
+                usage[api_key]["tier"] = tier
+                _save_usage(usage)
+
+    elif event["type"] == "customer.subscription.deleted":
+        session = event["data"]["object"]
+        api_key = (session.get("metadata") or {}).get("api_key")
+        if api_key:
+            usage = _load_usage()
+            if api_key in usage:
+                usage[api_key]["tier"] = "free"
+                _save_usage(usage)
+
+    return _json_response(start_response, "200 OK", {"received": True})
+
+
+def _handle_customer_portal(environ, start_response):
+    """GET /customer-portal?api_key=... -- create a Stripe customer portal session."""
+    stripe_key = _get_stripe_key()
+    if not stripe_key or _stripe is None:
+        return _json_response(
+            start_response,
+            "503 Service Unavailable",
+            {"error": "stripe_not_configured", "message": "Stripe is not configured."},
+        )
+
+    qs = urllib.parse.parse_qs(environ.get("QUERY_STRING", ""))
+    api_key = (qs.get("api_key", [""])[0]).strip()
+    if not api_key:
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "api_key query parameter is required"},
+        )
+
+    usage = _load_usage()
+    user_data = usage.get(api_key, {})
+    customer_id = user_data.get("stripe_customer_id")
+    if not customer_id:
+        return _json_response(
+            start_response, "404 Not Found",
+            {"error": "not_found", "message": "No Stripe subscription found for this API key"},
+        )
+
+    _stripe.api_key = stripe_key
+    host = environ.get("HTTP_HOST", "docaiid.pythonanywhere.com")
+    scheme = "https"
+
+    try:
+        portal = _stripe.billing_portal.Session.create(
+            customer=customer_id,
+            return_url=f"{scheme}://{host}/pricing.html",
+        )
+        return _json_response(start_response, "200 OK", {
+            "portal_url": portal.url,
+        })
+    except _stripe.error.StripeError as e:
+        return _json_response(
+            start_response, "500 Internal Server Error",
+            {"error": "stripe_error", "message": str(e)},
+        )
+
+
 # --- WSGI application --------------------------------------------------------
 
 def application(environ, start_response):
@@ -1299,6 +1572,12 @@ def application(environ, start_response):
             return _handle_signup(environ, start_response)
         if path == "/contact" and method in ("GET", "POST"):
             return _handle_contact(environ, start_response)
+        if path == "/create-checkout-session" and method == "POST":
+            return _handle_create_checkout_session(environ, start_response)
+        if path == "/stripe-webhook" and method == "POST":
+            return _handle_stripe_webhook(environ, start_response)
+        if path == "/customer-portal" and method == "GET":
+            return _handle_customer_portal(environ, start_response)
         if path == "/docs" and method == "GET":
             return _handle_docs(environ, start_response)
         if path == "/openapi.json" and method == "GET":
