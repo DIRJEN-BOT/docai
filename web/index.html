@@ -3,202 +3,525 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DocAI — Demo Parser E-Statement Bank</title>
+  <title>DocAI Verify — Income Verification API</title>
   <style>
-    * { box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      margin: 0;
-      background: #f6f7f9;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       color: #1a2233;
+      background: #f6f7f9;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
+    a { color: #0e7a3d; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+    /* Nav */
     header {
-      background: #0b1f3a;
-      color: #fff;
-      padding: 24px 20px;
+      background: #0b1f3a; color: #fff;
+      padding: 14px 20px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
     }
-    header h1 { margin: 0; font-size: 22px; }
-    header p { margin: 6px 0 0; opacity: .8; font-size: 14px; }
-    main { max-width: 880px; margin: 24px auto; padding: 0 16px; }
-    .card {
-      background: #fff;
-      border: 1px solid #e3e7ee;
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 18px;
+    header .nav { max-width: 960px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    header .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    header .logo span { color: #4ade80; }
+    header nav a { color: rgba(255,255,255,.75); font-size: 13px; margin-left: 20px; transition: color .15s; }
+    header nav a:hover { color: #fff; text-decoration: none; }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #0b1f3a 0%, #14325c 100%);
+      color: #fff; padding: 72px 20px 56px; text-align: center;
     }
-    label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 6px; }
-    input[type="file"] {
-      width: 100%;
-      padding: 12px;
-      border: 1px dashed #9aa5b5;
-      border-radius: 8px;
-      background: #fafbfc;
+    .hero h1 { font-size: 32px; font-weight: 800; line-height: 1.25; margin-bottom: 14px; }
+    .hero .subtitle { font-size: 17px; color: rgba(255,255,255,.8); max-width: 640px; margin: 0 auto 28px; }
+    .hero .cta {
+      display: inline-block; background: #0e7a3d; color: #fff;
+      padding: 13px 32px; border-radius: 8px; font-size: 16px; font-weight: 700;
+      transition: background .15s;
     }
-    .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; margin-top: 14px; }
-    .row select, .row button { padding: 10px 16px; border-radius: 8px; font-size: 14px; }
-    .row select { border: 1px solid #c4cbd6; background: #fff; }
-    .row button {
-      background: #0b1f3a;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
+    .hero .cta:hover { background: #0a6330; text-decoration: none; }
+    .trust-badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 32px; }
+    .trust-badges .badge {
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+      padding: 6px 16px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      color: rgba(255,255,255,.9);
     }
-    .row button:hover { background: #14325c; }
-    .row button:disabled { background: #8a94a5; cursor: wait; }
-    #download {
-      background: #0e7a3d;
-      display: none;
-      text-decoration: none;
+
+    /* Sections */
+    section { padding: 56px 20px; }
+    section:nth-child(even) { background: #fff; }
+    .section-title { text-align: center; font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .section-subtitle { text-align: center; color: #5a6478; font-size: 15px; margin-bottom: 36px; }
+
+    /* Steps */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .step { text-align: center; padding: 24px 16px; }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: #0e7a3d; color: #fff; font-weight: 800; font-size: 18px; margin-bottom: 14px;
     }
-    #status { font-size: 13px; color: #5a6478; margin-top: 10px; }
+    .step h3 { font-size: 16px; margin-bottom: 6px; }
+    .step p { font-size: 14px; color: #5a6478; }
+
+    /* Demo */
+    #demo { background: #fff; }
+    .demo-card {
+      background: #f9fafb; border: 1px solid #e3e7ee;
+      border-radius: 12px; padding: 24px; margin-bottom: 20px;
+    }
+    .mode-toggle {
+      display: flex; margin-bottom: 20px; border-radius: 8px;
+      overflow: hidden; border: 1px solid #d1d5db; width: fit-content;
+    }
+    .mode-toggle button {
+      padding: 10px 24px; border: none; background: #fff;
+      font-size: 14px; font-weight: 600; cursor: pointer; color: #5a6478; transition: all .15s;
+    }
+    .mode-toggle button.active { background: #0b1f3a; color: #fff; }
+    .demo-field { margin-bottom: 14px; }
+    .demo-field label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 6px; }
+    .demo-field input[type="file"] {
+      width: 100%; padding: 12px; border: 1px dashed #9aa5b5;
+      border-radius: 8px; background: #fafbfc; font-size: 14px;
+    }
+    .demo-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+    .demo-row select, .demo-row button { padding: 10px 16px; border-radius: 8px; font-size: 14px; }
+    .demo-row select { border: 1px solid #c4cbd6; background: #fff; }
+    .demo-row button {
+      background: #0e7a3d; color: #fff; border: none; cursor: pointer; font-weight: 700;
+    }
+    .demo-row button:hover { background: #0a6330; }
+    .demo-row button:disabled { background: #8a94a5; cursor: wait; }
+    .demo-row a {
+      background: #0b1f3a; color: #fff; padding: 10px 16px; border-radius: 8px;
+      display: none; font-size: 14px; font-weight: 600;
+    }
+    .demo-row a:hover { background: #14325c; text-decoration: none; }
+    #demo-status { font-size: 13px; color: #5a6478; margin-top: 10px; }
+    .error-box {
+      background: #fdecec; border: 1px solid #f5c6c6; color: #b42318;
+      padding: 12px; border-radius: 8px; margin-top: 10px;
+    }
+
+    /* Verify Result */
+    .score-hero { text-align: center; padding: 24px; border-radius: 12px; margin-bottom: 16px; }
+    .score-hero .score-num { font-size: 56px; font-weight: 900; line-height: 1; }
+    .score-hero .score-label { font-size: 14px; font-weight: 600; margin-top: 4px; }
+    .score-green { background: #d9f4e3; color: #0e7a3d; }
+    .score-yellow { background: #fef3cd; color: #856404; }
+    .score-red { background: #fde3e3; color: #b42318; }
+    .metric-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px; margin-bottom: 16px;
+    }
+    .metric-card {
+      background: #f9fafb; border: 1px solid #e3e7ee;
+      border-radius: 8px; padding: 14px 16px; text-align: center;
+    }
+    .metric-card .metric-value { font-size: 22px; font-weight: 800; color: #0b1f3a; }
+    .metric-card .metric-label { font-size: 12px; color: #5a6478; margin-top: 2px; }
+    .flags-box {
+      background: #fff8e6; border: 1px solid #ffe0b2;
+      border-radius: 8px; padding: 12px 16px; margin-top: 8px;
+    }
+    .flags-box.clean { background: #d9f4e3; border-color: #a7d9bf; }
+    .flags-box strong { display: block; margin-bottom: 4px; }
+
+    /* Parse Result */
+    .parse-table { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 10px; }
+    .parse-table th { text-align: left; padding: 6px 8px; border-bottom: 2px solid #e3e7ee; font-weight: 700; }
+    .parse-table td { padding: 6px 8px; border-bottom: 1px solid #f1f3f5; }
+    .parse-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .parse-table th.num { text-align: right; }
+    .badge-tag { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-left: 8px; }
+    .badge-tag.ok { background: #d9f4e3; color: #0e7a3d; }
+    .badge-tag.fail { background: #fde3e3; color: #b42318; }
+
+    /* Pricing */
+    .pricing-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .pricing-table th { background: #0b1f3a; color: #fff; padding: 12px 16px; text-align: left; font-weight: 600; }
+    .pricing-table th:first-child { border-radius: 8px 0 0 0; }
+    .pricing-table th:last-child { border-radius: 0 8px 0 0; }
+    .pricing-table td { padding: 14px 16px; border-bottom: 1px solid #e3e7ee; }
+    .pricing-table tr:nth-child(even) td { background: #f9fafb; }
+    .pricing-table .highlight { background: #d9f4e3; font-weight: 700; }
+
+    /* API Example */
     pre {
-      background: #0f172a;
-      color: #d6e2ff;
-      padding: 14px;
-      border-radius: 8px;
-      overflow: auto;
-      font-size: 12px;
-      max-height: 420px;
+      background: #0f172a; color: #d6e2ff; padding: 16px; border-radius: 8px;
+      overflow-x: auto; font-size: 13px; line-height: 1.5;
+      font-family: "SF Mono", "Cascadia Code", "Fira Code", Consolas, monospace;
     }
-    .badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      margin-left: 8px;
+    pre .comment { color: #6b7a95; }
+    pre .string { color: #a5d6ff; }
+    pre .key { color: #7ee787; }
+
+    /* Banks */
+    .bank-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .bank-card { background: #fff; border: 1px solid #e3e7ee; border-radius: 10px; padding: 20px; text-align: center; }
+    .bank-card .bank-name { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+    .bank-card .bank-status { font-size: 13px; font-weight: 600; }
+    .bank-card .bank-status.ready { color: #0e7a3d; }
+    .bank-card .bank-status.soon { color: #d97706; }
+
+    /* Footer */
+    footer { background: #0b1f3a; color: rgba(255,255,255,.7); padding: 32px 20px; text-align: center; font-size: 13px; }
+    footer a { color: rgba(255,255,255,.85); }
+    footer .footer-links { margin-bottom: 8px; }
+    footer .footer-links a { margin: 0 10px; }
+    footer .footer-tagline { font-size: 11px; margin-top: 8px; opacity: .5; }
+
+    /* Mobile */
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 24px; }
+      .hero .subtitle { font-size: 15px; }
+      .steps { grid-template-columns: 1fr; gap: 16px; }
+      .trust-badges { gap: 8px; }
+      .trust-badges .badge { font-size: 11px; padding: 5px 12px; }
+      .metric-grid { grid-template-columns: repeat(2, 1fr); }
+      .score-hero .score-num { font-size: 40px; }
+      .bank-grid { grid-template-columns: 1fr 1fr; }
+      section { padding: 40px 20px; }
+      .demo-row { flex-direction: column; align-items: stretch; }
+      .pricing-table { font-size: 13px; }
+      .pricing-table th, .pricing-table td { padding: 10px 12px; }
     }
-    .badge.ok { background: #d9f4e3; color: #0e7a3d; }
-    .badge.fail { background: #fde3e3; color: #b42318; }
-    .error { background: #fdecec; border: 1px solid #f5c6c6; color: #b42318; padding: 12px; border-radius: 8px; }
-    .meta { font-size: 13px; color: #5a6478; margin: 8px 0 0; }
-    ul.meta { padding-left: 18px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>DocAI <span style="font-weight:400; font-size:14px; opacity:.7;">— Demo API Parser E-Statement Bank Indonesia</span></h1>
-    <p>Upload PDF e-statement, dapatkan transaksi terstruktur (JSON/CSV) dengan balance-check otomatis.</p>
-  </header>
 
-  <main>
-    <div class="card">
-      <label for="file">File PDF e-statement (contoh: mutasi BCA .pdf)</label>
-      <input type="file" id="file" accept=".pdf,application/pdf" />
-      <div class="row">
+<!-- NAV -->
+<header>
+  <div class="nav">
+    <div class="logo">DocAI <span>Verify</span></div>
+    <nav>
+      <a href="#how-it-works">Cara Kerja</a>
+      <a href="#demo">Demo</a>
+      <a href="#pricing">Harga</a>
+      <a href="#api">API</a>
+      <a href="#banks">Bank</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>DocAI Verify — Verifikasi Penghasilan dari E-Statement Bank</h1>
+  <p class="subtitle">Upload PDF e-statement BCA/Mandiri → dapat income score, deteksi gaji, dan fraud signals dalam hitungan detik</p>
+  <a class="cta" href="#demo">Coba Gratis →</a>
+  <div class="trust-badges">
+    <span class="badge">Zero LLM Cost</span>
+    <span class="badge">30–150ms</span>
+    <span class="badge">Deterministic</span>
+    <span class="badge">120 Tests Passing</span>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="container">
+    <h2 class="section-title">Cara Kerja</h2>
+    <p class="section-subtitle">Tiga langkah untuk verifikasi penghasilan calon peminjam</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Upload PDF</h3>
+        <p>Borrower upload e-statement BCA atau Mandiri dalam format PDF</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Auto-Parse &amp; Score</h3>
+        <p>Kami extract transaksi, deteksi gaji, hitung consistency score secara otomatis</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Get Verification Report</h3>
+        <p>JSON lengkap: income estimate, fraud flags, verification score (0–100)</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE DEMO -->
+<section id="demo">
+  <div class="container">
+    <h2 class="section-title">Live Demo</h2>
+    <p class="section-subtitle">Upload e-statement PDF untuk mencoba API</p>
+    <div class="demo-card">
+      <div class="mode-toggle">
+        <button id="modeParse" class="active" onclick="switchMode('parse')">Parse</button>
+        <button id="modeVerify" onclick="switchMode('verify')">Verify Income</button>
+      </div>
+      <div class="demo-field">
+        <label for="file">File PDF e-statement</label>
+        <input type="file" id="file" accept=".pdf,application/pdf" />
+      </div>
+      <div class="demo-row">
         <select id="bank">
           <option value="bca">BCA</option>
+          <option value="mandiri">Mandiri</option>
         </select>
-        <button id="parseBtn">Parse</button>
-        <a id="download" href="#" download="mutasi.csv">⬇ Download CSV</a>
+        <button id="actionBtn" onclick="runDemo()">Parse</button>
+        <a id="downloadBtn" href="#" download="mutasi.csv">⬇ Download CSV</a>
       </div>
-      <p id="status">Pilih file lalu klik Parse. Data hanya diproses di memori server demo, tidak disimpan.</p>
+      <p id="demo-status">Pilih file lalu klik Parse. Data hanya diproses di memori server demo, tidak disimpan.</p>
     </div>
-
     <div id="result"></div>
+  </div>
+</section>
 
-    <div class="card">
-      <h3 style="margin-top:0; font-size:15px;">Endpoint API</h3>
-      <pre>POST /parse   → JSON (default) atau CSV (?format=csv)
-GET  /health → status + daftar bank
-
-curl -X POST http://localhost:8000/parse \
-     -F "file=@statement.pdf" \
-     -F "bank=bca"</pre>
-      <p class="meta">Dokumentasi lengkap: <code>/docs</code> (Swagger UI).</p>
+<!-- PRICING -->
+<section id="pricing">
+  <div class="container">
+    <h2 class="section-title">Harga</h2>
+    <p class="section-subtitle">Skema pricing fleksibel sesuai volume bisnis Anda</p>
+    <div style="overflow-x:auto;">
+      <table class="pricing-table">
+        <thead>
+          <tr><th>Tier</th><th>Harga</th><th>Verifikasi / Bulan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Free</strong></td><td>Rp 0</td><td>100</td></tr>
+          <tr class="highlight"><td><strong>Starter</strong></td><td>Rp 500,000/bulan</td><td>500</td></tr>
+          <tr><td><strong>Growth</strong></td><td>Rp 5,000,000/bulan</td><td>5,000</td></tr>
+          <tr><td><strong>Scale</strong></td><td>Rp 30,000,000/bulan</td><td>50,000</td></tr>
+          <tr><td><strong>Enterprise</strong></td><td>Custom</td><td>Unlimited</td></tr>
+        </tbody>
+      </table>
     </div>
-  </main>
+  </div>
+</section>
 
-  <script>
-    const fileInput = document.getElementById("file");
-    const bankSelect = document.getElementById("bank");
-    const parseBtn = document.getElementById("parseBtn");
-    const downloadBtn = document.getElementById("download");
-    const statusEl = document.getElementById("status");
-    const resultEl = document.getElementById("result");
+<!-- API EXAMPLE -->
+<section id="api">
+  <div class="container">
+    <h2 class="section-title">Contoh API</h2>
+    <p class="section-subtitle">Integrasikan verifikasi penghasilan dalam hitungan baris kode</p>
+    <div class="demo-card">
+      <h3 style="margin-bottom:10px; font-size:15px;">Request — cURL</h3>
+      <pre><span class="comment"># Verifikasi penghasilan dari e-statement</span>
+curl -X POST https://docaiid.pythonanywhere.com/verify-income \
+  -H <span class="string">"X-API-Key: YOUR_KEY"</span> \
+  -F <span class="string">"file=@statement.pdf"</span> \
+  -F <span class="string">"bank=bca"</span></pre>
+    </div>
+    <div class="demo-card">
+      <h3 style="margin-bottom:10px; font-size:15px;">Response — JSON</h3>
+      <pre>{
+  <span class="key">"verification_score"</span>: 82,
+  <span class="key">"confidence"</span>: <span class="string">"high"</span>,
+  <span class="key">"detected_monthly_income"</span>: 12500000,
+  <span class="key">"income_source"</span>: <span class="string">"salary"</span>,
+  <span class="key">"salary_months_detected"</span>: 6,
+  <span class="key">"monthly_incomes"</span>: [
+    {<span class="key">"month"</span>: <span class="string">"2025-01"</span>, <span class="key">"amount"</span>: 12500000, <span class="key">"source"</span>: <span class="string">"salary"</span>},
+    {<span class="key">"month"</span>: <span class="string">"2025-02"</span>, <span class="key">"amount"</span>: 12500000, <span class="key">"source"</span>: <span class="string">"salary"</span>},
+    {<span class="key">"month"</span>: <span class="string">"2025-03"</span>, <span class="key">"amount"</span>: 12500000, <span class="key">"source"</span>: <span class="string">"salary"</span>}
+  ],
+  <span class="key">"consistency_score"</span>: 95,
+  <span class="key">"income_cv"</span>: 0.02,
+  <span class="key">"has_gaps"</span>: false,
+  <span class="key">"fraud_flags"</span>: [],
+  <span class="key">"balance_valid"</span>: true,
+  <span class="key">"has_suspicious_patterns"</span>: false,
+  <span class="key">"statement_period"</span>: <span class="string">"01 Jan 2025 - 30 Jun 2025"</span>,
+  <span class="key">"total_months_covered"</span>: 6,
+  <span class="key">"total_transactions"</span>: 186,
+  <span class="key">"bank"</span>: <span class="string">"bca"</span>,
+  <span class="key">"account_number"</span>: <span class="string">"1234567890"</span>
+}</pre>
+    </div>
+  </div>
+</section>
 
-    function fmt(n) {
-      return n.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+<!-- SUPPORTED BANKS -->
+<section id="banks">
+  <div class="container">
+    <h2 class="section-title">Bank yang Didukung</h2>
+    <p class="section-subtitle">Ekstraksi dan verifikasi otomatis dari e-statement PDF</p>
+    <div class="bank-grid">
+      <div class="bank-card"><div class="bank-name">BCA</div><div class="bank-status ready">✅ Production-ready</div></div>
+      <div class="bank-card"><div class="bank-name">Mandiri</div><div class="bank-status ready">✅ Production-ready</div></div>
+      <div class="bank-card"><div class="bank-name">BNI</div><div class="bank-status soon">🔜 Coming soon</div></div>
+      <div class="bank-card"><div class="bank-name">BRI</div><div class="bank-status soon">🔜 Coming soon</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="https://github.com/docai-verify" target="_blank">GitHub</a>
+    <a href="/docs">API Docs</a>
+    <a href="mailto:hello@docai.id">Contact</a>
+  </div>
+  <div>Built with ❤️ in Jakarta</div>
+  <div class="footer-tagline">DocAI Verify — Income Verification API for Indonesian Fintech</div>
+</footer>
+
+<script>
+  var API_BASE = "https://docaiid.pythonanywhere.com";
+  var DEMO_KEY = "docai-dev-key-12345";
+  var currentMode = "parse";
+
+  var fileInput   = document.getElementById("file");
+  var bankSelect  = document.getElementById("bank");
+  var actionBtn   = document.getElementById("actionBtn");
+  var downloadBtn = document.getElementById("downloadBtn");
+  var statusEl    = document.getElementById("demo-status");
+  var resultEl    = document.getElementById("result");
+
+  function switchMode(mode) {
+    currentMode = mode;
+    document.getElementById("modeParse").classList.toggle("active", mode === "parse");
+    document.getElementById("modeVerify").classList.toggle("active", mode === "verify");
+    actionBtn.textContent = mode === "parse" ? "Parse" : "Verify Income";
+    resultEl.innerHTML = "";
+    statusEl.textContent = "Pilih file lalu klik " + actionBtn.textContent + ".";
+  }
+
+  function fmt(n) {
+    if (n == null) return "—";
+    return n.toLocaleString("id-ID", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+  function fmtDec(n) {
+    if (n == null) return "—";
+    return n.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function scoreClass(score) {
+    if (score > 70) return "score-green";
+    if (score >= 40) return "score-yellow";
+    return "score-red";
+  }
+  function escapeHtml(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  async function runDemo() {
+    var file = fileInput.files[0];
+    if (!file) { statusEl.textContent = "Pilih file PDF dulu."; return; }
+    actionBtn.disabled = true;
+    statusEl.textContent = currentMode === "parse" ? "Parsing..." : "Verifying income...";
+    downloadBtn.style.display = "none";
+    resultEl.innerHTML = "";
+
+    var form = new FormData();
+    form.append("file", file);
+    form.append("bank", bankSelect.value);
+    var endpoint = currentMode === "parse" ? "/parse" : "/verify-income";
+
+    try {
+      var resp = await fetch(API_BASE + endpoint, {
+        method: "POST",
+        headers: { "X-API-Key": DEMO_KEY },
+        body: form,
+      });
+      if (!resp.ok) {
+        var err = await resp.json().catch(function() { return {}; });
+        throw new Error(err.detail || JSON.stringify(err) || "HTTP " + resp.status);
+      }
+      var data = await resp.json();
+      if (currentMode === "parse") { renderParse(data, form); }
+      else { renderVerify(data); }
+      statusEl.textContent = "Berhasil.";
+    } catch (e) {
+      statusEl.textContent = "Gagal.";
+      resultEl.innerHTML = '<div class="error-box"><strong>Error:</strong> ' + escapeHtml(e.message) + '</div>';
+    }
+    actionBtn.disabled = false;
+  }
+
+  function renderParse(data, form) {
+    var passed = data.balance_check === "passed";
+    var n = data.transactions ? data.transactions.length : 0;
+    var rows = (data.transactions || []).map(function(t) {
+      return '<tr><td>' + escapeHtml(t.date) + '</td><td>' + escapeHtml(t.description) + '</td>'
+        + '<td class="num">' + (t.debit ? fmtDec(t.debit) : "") + '</td>'
+        + '<td class="num">' + (t.credit ? fmtDec(t.credit) : "") + '</td>'
+        + '<td class="num">' + fmtDec(t.balance) + '</td></tr>';
+    }).join("");
+
+    resultEl.innerHTML =
+      '<div class="demo-card"><h3 style="margin-top:0; font-size:15px;">Hasil Parse'
+      + '<span class="badge-tag ' + (passed ? 'ok' : 'fail') + '">'
+      + (passed ? 'Balance-check PASSED' : 'Balance-check FAILED') + '</span></h3>'
+      + '<p style="font-size:13px; color:#5a6478; margin:8px 0 0;"><strong>'
+      + escapeHtml(data.account_name || "—") + '</strong> · '
+      + escapeHtml(data.account_number || "—") + ' · '
+      + escapeHtml(data.statement_period || "—") + ' · Saldo awal '
+      + fmtDec(data.opening_balance) + ' → akhir ' + fmtDec(data.closing_balance) + '</p>'
+      + '<ul style="font-size:13px; color:#5a6478; padding-left:18px; margin:8px 0 0;">'
+      + '<li>' + n + ' transaksi · Total debit ' + fmtDec(data.total_debit)
+      + ' · Total kredit ' + fmtDec(data.total_credit) + '</li>'
+      + (data.validation_error ? '<li style="color:#b42318">⚠ ' + escapeHtml(data.validation_error) + '</li>' : '')
+      + '</ul>'
+      + '<table class="parse-table"><thead><tr>'
+      + '<th>Tanggal</th><th>Keterangan</th><th class="num">Debit</th><th class="num">Kredit</th><th class="num">Saldo</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
+      + '<div class="demo-card"><h3 style="margin-top:0; font-size:15px;">Raw JSON</h3>'
+      + '<pre>' + escapeHtml(JSON.stringify(data, null, 2)) + '</pre></div>';
+
+    downloadBtn.style.display = "inline-block";
+    downloadBtn.onclick = async function(ev) {
+      ev.preventDefault();
+      var csvResp = await fetch(API_BASE + "/parse?format=csv", {
+        method: "POST", headers: { "X-API-Key": DEMO_KEY }, body: form,
+      });
+      var blob = await csvResp.blob();
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = "mutasi.csv"; a.click();
+      URL.revokeObjectURL(url);
+    };
+  }
+
+  function renderVerify(data) {
+    var score = data.verification_score != null ? data.verification_score : 0;
+    var cls = scoreClass(score);
+    var income = data.detected_monthly_income;
+    var consistency = data.consistency_score;
+    var flags = data.fraud_flags || [];
+    var balanceOk = data.balance_valid;
+    var monthRows = "";
+    var monthlyArr = data.monthly_incomes || [];
+    for (var i = 0; i < monthlyArr.length; i++) {
+      var m = monthlyArr[i];
+      monthRows += '<tr><td>' + escapeHtml(m.month) + '</td>'
+        + '<td class="num">' + fmt(m.amount) + '</td><td>' + escapeHtml(m.source || "—") + '</td></tr>';
     }
 
-    parseBtn.addEventListener("click", async () => {
-      const file = fileInput.files[0];
-      if (!file) { statusEl.textContent = "Pilih file PDF dulu."; return; }
+    var html =
+      '<div class="score-hero ' + cls + '">'
+      + '<div class="score-num">' + score + '</div>'
+      + '<div class="score-label">Verification Score</div></div>'
+      + '<div class="metric-grid">'
+      + '<div class="metric-card"><div class="metric-value">' + (income ? "Rp " + fmt(income) : "—") + '</div><div class="metric-label">Monthly Income Estimate</div></div>'
+      + '<div class="metric-card"><div class="metric-value">' + (consistency != null ? consistency + "%" : "—") + '</div><div class="metric-label">Consistency Score</div></div>'
+      + '<div class="metric-card"><div class="metric-value">' + (data.salary_months_detected || 0) + '</div><div class="metric-label">Salary Months Detected</div></div>'
+      + '<div class="metric-card"><div class="metric-value">' + (data.confidence || "—") + '</div><div class="metric-label">Confidence Level</div></div>'
+      + '</div>'
+      + '<div class="flags-box ' + (flags.length === 0 ? 'clean' : '') + '">'
+      + '<strong>' + (flags.length === 0 ? '✅ No Fraud Flags' : '⚠ Fraud Flags Detected') + '</strong>'
+      + (flags.length === 0 ? 'Tidak ada pola mencurigakan terdeteksi.'
+        : flags.map(function(f) { return '• ' + escapeHtml(f); }).join('<br>')) + '</div>'
+      + '<div class="flags-box ' + (balanceOk ? 'clean' : '') + '" style="margin-top:10px;">'
+      + '<strong>' + (balanceOk ? '✅ Balance Check Passed' : '⚠ Balance Check Failed') + '</strong>'
+      + (balanceOk ? 'Saldo awal + kredit − debit = saldo akhir (konsisten).'
+        : 'Saldo tidak konsisten — kemungkinan ada transaksi yang terlewat.') + '</div>';
 
-      parseBtn.disabled = true;
-      statusEl.textContent = "Parsing...";
-      downloadBtn.style.display = "none";
+    if (monthlyArr.length > 0) {
+      html += '<div class="demo-card" style="margin-top:16px;"><h3 style="margin-top:0; font-size:15px;">Monthly Income Breakdown</h3>'
+        + '<table class="parse-table"><thead><tr><th>Bulan</th><th class="num">Amount</th><th>Source</th></tr></thead>'
+        + '<tbody>' + monthRows + '</tbody></table></div>';
+    }
+    html += '<div class="demo-card"><h3 style="margin-top:0; font-size:15px;">Raw JSON</h3>'
+      + '<pre>' + escapeHtml(JSON.stringify(data, null, 2)) + '</pre></div>';
 
-      const form = new FormData();
-      form.append("file", file);
-      form.append("bank", bankSelect.value);
-
-      let data;
-      try {
-        const resp = await fetch("/parse", { method: "POST", body: form });
-        if (!resp.ok) {
-          const err = await resp.json();
-          throw new Error(err.detail || JSON.stringify(err));
-        }
-        data = await resp.json();
-      } catch (e) {
-        statusEl.textContent = "Gagal.";
-        resultEl.innerHTML = `<div class="error"><strong>Error:</strong> ${e.message.replace(/</g, "&lt;")}</div>`;
-        parseBtn.disabled = false;
-        return;
-      }
-
-      const passed = data.balance_check === "passed";
-      const n = data.transactions.length;
-      const rows = data.transactions
-        .map(t => `<tr><td>${t.date}</td><td>${t.description}</td><td class="num">${t.debit ? fmt(t.debit) : ""}</td><td class="num">${t.credit ? fmt(t.credit) : ""}</td><td class="num">${fmt(t.balance)}</td></tr>`)
-        .join("");
-
-      resultEl.innerHTML = `
-        <div class="card">
-          <h3 style="margin-top:0; font-size:15px;">
-            Hasil Parse
-            <span class="badge ${passed ? "ok" : "fail"}">${passed ? "Balance-check PASSED" : "Balance-check FAILED"}</span>
-          </h3>
-          <p class="meta">
-            <strong>${data.account_name || "—"}</strong> · ${data.account_number || "—"} · ${data.statement_period || "—"} ·
-            Saldo awal ${fmt(data.opening_balance)} → akhir ${fmt(data.closing_balance)}
-          </p>
-          <ul class="meta">
-            <li>${n} transaksi · Total debit ${fmt(data.total_debit)} · Total kredit ${fmt(data.total_credit)}</li>
-            ${data.validation_error ? `<li style="color:#b42318">⚠ ${data.validation_error}</li>` : ""}
-          </ul>
-          <table style="width:100%; border-collapse:collapse; font-size:12.5px; margin-top:10px;">
-            <thead><tr style="text-align:left; border-bottom:2px solid #e3e7ee;">
-              <th style="padding:6px">Tanggal</th><th style="padding:6px">Keterangan</th>
-              <th style="padding:6px; text-align:right">Debit</th><th style="padding:6px; text-align:right">Kredit</th>
-              <th style="padding:6px; text-align:right">Saldo</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-        <div class="card">
-          <h3 style="margin-top:0; font-size:15px;">Raw JSON</h3>
-          <pre>${JSON.stringify(data, null, 2).replace(/</g, "&lt;")}</pre>
-        </div>`;
-
-      statusEl.textContent = `Berhasil: ${n} transaksi di-parse (${passed ? "balance cocok" : "balance TIDAK cocok — cek file aslinya")}.`;
-      downloadBtn.style.display = "inline-block";
-      downloadBtn.onclick = async (ev) => {
-        ev.preventDefault();
-        const csvResp = await fetch("/parse?format=csv", { method: "POST", body: form });
-        const blob = await csvResp.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "mutasi.csv";
-        a.click();
-        URL.revokeObjectURL(url);
-      };
-      parseBtn.disabled = false;
-    });
-  </script>
+    resultEl.innerHTML = html;
+  }
+</script>
 </body>
 </html>

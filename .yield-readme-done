@@ -1,0 +1,11 @@
+README.md fully rewritten. All 7 acceptance criteria met:
+
+1. Completely rewritten - new title, structure, content
+2. Mandiri = Live - Supported Banks + Benchmark tables
+3. /verify-income documented - full API Reference with curl examples
+4. API key auth documented - Authentication section with demo key + tier table
+5. Pricing matches outreach/pricing.md - 5 tiers (Free/Rp500K/Rp5M/Rp30M/Custom)
+6. Project structure accurate - scoring.py, mandiri.py, test_api_enhanced.py, test_scoring.py, test_mandiri_parser.py, outreach/, pa_wsgi.py, deploy/
+7. BCA benchmark preserved - exact original numbers (3 real + 5 fixtures, 100% balance-check, 30-150ms)
+
+File: C:/Users/MSI/business-exploration/docai/README.md (8859 bytes)
