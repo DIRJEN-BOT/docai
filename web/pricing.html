@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pricing — DocAI Verify</title>
+  <meta name="description" content="DocAI Verify pricing — Free tier for testing, paid plans for production use. Income verification API for Indonesian fintech." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #1a2233; background: #f6f7f9; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #0e7a3d; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+    /* Nav */
+    header {
+      background: #0b1f3a; color: #fff;
+      padding: 14px 20px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+    header .nav { max-width: 960px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    header .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    header .logo span { color: #4ade80; }
+    header nav a { color: rgba(255,255,255,.75); font-size: 13px; margin-left: 20px; transition: color .15s; }
+    header nav a:hover { color: #fff; text-decoration: none; }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #0b1f3a 0%, #14325c 100%);
+      color: #fff; padding: 56px 20px 40px; text-align: center;
+    }
+    .hero h1 { font-size: 32px; font-weight: 800; line-height: 1.25; margin-bottom: 12px; }
+    .hero .subtitle { font-size: 17px; color: rgba(255,255,255,.8); max-width: 560px; margin: 0 auto; }
+
+    /* Pricing Grid */
+    .pricing-section { padding: 48px 20px 56px; }
+    .pricing-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;
+      max-width: 960px; margin: 0 auto;
+    }
+    .pricing-card {
+      background: #fff; border: 1px solid #e3e7ee; border-radius: 14px;
+      padding: 28px 20px; text-align: center; position: relative;
+      display: flex; flex-direction: column; transition: box-shadow .2s;
+    }
+    .pricing-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,.08); }
+    .pricing-card.popular {
+      border: 2px solid #0e7a3d; box-shadow: 0 4px 20px rgba(14,122,61,.12);
+    }
+    .popular-badge {
+      position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+      background: #0e7a3d; color: #fff; font-size: 11px; font-weight: 700;
+      padding: 4px 14px; border-radius: 999px; text-transform: uppercase;
+      letter-spacing: .5px; white-space: nowrap;
+    }
+    .card-tier {
+      font-size: 13px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .8px; color: #5a6478; margin-bottom: 8px;
+    }
+    .card-price { font-size: 32px; font-weight: 900; color: #0b1f3a; line-height: 1; }
+    .card-price .currency { font-size: 18px; font-weight: 700; vertical-align: top; position: relative; top: 4px; }
+    .card-price .period { font-size: 14px; font-weight: 500; color: #5a6478; }
+    .card-limit {
+      font-size: 13px; color: #5a6478; margin: 10px 0 20px;
+      padding-bottom: 16px; border-bottom: 1px solid #e3e7ee;
+    }
+    .card-features { list-style: none; text-align: left; margin-bottom: 24px; flex: 1; }
+    .card-features li {
+      font-size: 13.5px; color: #2d3748; padding: 5px 0;
+      padding-left: 22px; position: relative; line-height: 1.4;
+    }
+    .card-features li::before {
+      content: "✓"; position: absolute; left: 0; color: #0e7a3d;
+      font-weight: 700; font-size: 14px;
+    }
+    .card-cta {
+      display: block; padding: 12px 0; border-radius: 8px; font-size: 14px;
+      font-weight: 700; text-align: center; transition: all .15s;
+      text-decoration: none; cursor: pointer; border: none; width: 100%;
+    }
+    .card-cta:hover { text-decoration: none; }
+    .card-cta.primary { background: #0e7a3d; color: #fff; }
+    .card-cta.primary:hover { background: #0a6330; }
+    .card-cta.secondary { background: #0b1f3a; color: #fff; }
+    .card-cta.secondary:hover { background: #14325c; }
+    .card-cta.outline { background: #fff; color: #0e7a3d; border: 2px solid #0e7a3d; }
+    .card-cta.outline:hover { background: #f0fdf4; }
+
+    /* FAQ */
+    .faq-section { padding: 48px 20px 56px; background: #fff; }
+    .faq-title { text-align: center; font-size: 24px; font-weight: 800; margin-bottom: 32px; }
+    .faq-list { max-width: 720px; margin: 0 auto; }
+    .faq-item { border-bottom: 1px solid #e3e7ee; padding: 20px 0; }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-q { font-size: 15px; font-weight: 700; color: #0b1f3a; margin-bottom: 8px; }
+    .faq-a { font-size: 14px; color: #5a6478; line-height: 1.6; }
+
+    /* Back Link */
+    .back-link {
+      display: block; text-align: center; padding: 24px 20px 48px;
+      font-size: 14px; color: #5a6478;
+    }
+    .back-link a { font-weight: 600; }
+
+    /* Footer */
+    footer { background: #0b1f3a; color: rgba(255,255,255,.7); padding: 32px 20px; text-align: center; font-size: 13px; }
+    footer a { color: rgba(255,255,255,.85); }
+    footer .footer-links { margin-bottom: 8px; }
+    footer .footer-links a { margin: 0 10px; }
+    footer .footer-tagline { font-size: 11px; margin-top: 8px; opacity: .5; }
+
+    @media (max-width: 800px) {
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    }
+    @media (max-width: 520px) {
+      .pricing-grid { grid-template-columns: 1fr; max-width: 340px; }
+      .hero h1 { font-size: 24px; }
+      header nav a { margin-left: 12px; font-size: 12px; }
+    }
+  </style>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230b1f3a'/><text x='50' y='65' text-anchor='middle' font-size='50' font-family='system-ui' font-weight='bold' fill='%234ade80'>D</text></svg>" />
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="/" class="logo" style="text-decoration:none">DocAI <span>Verify</span></a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/#demo">Demo</a>
+      <a href="/#api">API</a>
+      <a href="/signup">Sign Up</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>Simple, Transparent Pricing</h1>
+  <p class="subtitle">Start free. Scale when you're ready. No hidden fees, no setup costs.</p>
+</div>
+
+<section class="pricing-section">
+  <div class="pricing-grid">
+
+    <!-- Free -->
+    <div class="pricing-card">
+      <div class="card-tier">Free</div>
+      <div class="card-price"><span class="currency">$</span>0<span class="period">/mo</span></div>
+      <div class="card-limit">100 requests / month</div>
+      <ul class="card-features">
+        <li>BCA &amp; Mandiri parsing</li>
+        <li>Income verification scoring</li>
+        <li>Fraud signal detection</li>
+        <li>JSON &amp; CSV export</li>
+        <li>Email support</li>
+      </ul>
+      <a href="/signup" class="card-cta outline">Get Started Free</a>
+    </div>
+
+    <!-- Starter -->
+    <div class="pricing-card">
+      <div class="card-tier">Starter</div>
+      <div class="card-price"><span class="currency">$</span>9.99<span class="period">/mo</span></div>
+      <div class="card-limit">1,000 requests / month</div>
+      <ul class="card-features">
+        <li>Everything in Free</li>
+        <li>Priority email support</li>
+        <li>Webhook callbacks</li>
+        <li>Higher rate limits</li>
+      </ul>
+      <a href="/contact.html" class="card-cta secondary">Contact Sales</a>
+    </div>
+
+    <!-- Growth (Popular) -->
+    <div class="pricing-card popular">
+      <div class="popular-badge">Most Popular</div>
+      <div class="card-tier">Growth</div>
+      <div class="card-price"><span class="currency">$</span>49.99<span class="period">/mo</span></div>
+      <div class="card-limit">10,000 requests / month</div>
+      <ul class="card-features">
+        <li>Everything in Starter</li>
+        <li>Batch processing</li>
+        <li>Custom bank formats</li>
+        <li>SLA guarantee (99.9%)</li>
+      </ul>
+      <a href="/contact.html" class="card-cta primary">Contact Sales</a>
+    </div>
+
+    <!-- Business -->
+    <div class="pricing-card">
+      <div class="card-tier">Business</div>
+      <div class="card-price"><span class="currency">$</span>199.99<span class="period">/mo</span></div>
+      <div class="card-limit">100,000 requests / month</div>
+      <ul class="card-features">
+        <li>Everything in Growth</li>
+        <li>Dedicated support</li>
+        <li>On-premise deployment</li>
+        <li>Custom integrations</li>
+      </ul>
+      <a href="/contact.html" class="card-cta secondary">Contact Sales</a>
+    </div>
+
+  </div>
+</section>
+
+<section class="faq-section">
+  <div class="container">
+    <h2 class="faq-title">Frequently Asked Questions</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q">Is there a setup fee?</div>
+        <div class="faq-a">No. Sign up, get your API key, and start verifying immediately. No setup fees, no contracts, no credit card required for the Free tier.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">What happens if I exceed my monthly limit?</div>
+        <div class="faq-a">We notify you at 80% usage. If you exceed the limit, you can upgrade your plan at any time. Unused requests do not roll over to the next month.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can I pay per verification (pay-as-you-go)?</div>
+        <div class="faq-a">Currently we offer monthly subscriptions. Enterprise customers can negotiate custom per-verification pricing. Contact us for details.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Is there a discount for annual billing?</div>
+        <div class="faq-a">Yes — 20% off for annual commitment. Contact our sales team to set up annual billing.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Which banks are supported?</div>
+        <div class="faq-a">BCA and Mandiri are production-ready. More banks are on our roadmap. Contact us if you need support for a specific bank.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can I try before I buy?</div>
+        <div class="faq-a">Absolutely. The Free tier gives you 100 verifications per month — enough to test with real data and evaluate the API for your use case.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Do you offer on-premise deployment?</div>
+        <div class="faq-a">Yes, the Business tier includes on-premise deployment options. This is ideal for organizations with strict data residency requirements.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="back-link">
+  <a href="/">← Back to DocAI Verify</a>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="/terms.html">Terms</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/contact.html">Contact</a>
+  </div>
+  <div>Built with ❤️ in Jakarta</div>
+  <div class="footer-tagline">DocAI Verify — Income Verification API for Indonesian Fintech</div>
+</footer>
+
+</body>
+</html>

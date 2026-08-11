@@ -50,7 +50,7 @@ Tidak ada upsell setelah pilot. Kalau cocok, kami tawarkan pricing. Kalau tidak,
 ### Langkah 1: Kirim sample statement
 Kirim 10 PDF bank statement (bisa anonymized/dummy) ke:
 - **WhatsApp:** [nomor WhatsApp]
-- **Email:** hello@docai.id
+- **Contact Form:** docaiid.pythonanywhere.com/contact.html
 
 ### Langkah 2: Kami proses & kirim hasil
 Dalam 24 jam, kami kirim:
@@ -106,7 +106,7 @@ A: REST API standar. 1-2 hari untuk dev yang familiar dengan API integration. Co
 ## Hubungi Kami
 
 - **WhatsApp:** [nomor]
-- **Email:** hello@docai.id
+- **Contact Form:** docaiid.pythonanywhere.com/contact.html
 - **LinkedIn:** [profile]
 - **API Docs:** docaiid.pythonanywhere.com/docs
 - **RapidAPI:** rapidapi.com/oyi77/api/docai

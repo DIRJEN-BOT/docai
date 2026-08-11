@@ -337,31 +337,106 @@
   </div>
 </section>
 
-<!-- LIVE DEMO -->
+<!-- DEMO -->
 <section id="demo">
   <div class="container">
-    <h2 class="section-title">Live Demo</h2>
-    <p class="section-subtitle">Upload e-statement PDF untuk mencoba API</p>
+    <h2 class="section-title">See It In Action</h2>
+    <p class="section-subtitle">Example API responses — try it yourself with your free API key</p>
+
     <div class="demo-card">
       <div class="mode-toggle">
-        <button id="modeParse" class="active" onclick="switchMode('parse')">Parse</button>
-        <button id="modeVerify" onclick="switchMode('verify')">Verify Income</button>
+        <button id="modeParse" class="active" onclick="switchTab('parse')">Parse</button>
+        <button id="modeVerify" onclick="switchTab('verify')">Verify Income</button>
       </div>
-      <div class="demo-field">
-        <label for="file">File PDF e-statement</label>
-        <input type="file" id="file" accept=".pdf,application/pdf" />
+
+      <!-- Parse tab -->
+      <div id="tabParse">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#5a6478;margin-bottom:8px;">Request</div>
+            <pre style="margin:0;font-size:12px;line-height:1.6;"><span class="comment"># POST /parse — demo_bca_statement.pdf</span>
+curl -X POST https://docaiid.pythonanywhere.com/parse \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -F "file=@statement.pdf" \
+  -F "bank=bca"</pre>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#5a6478;margin-bottom:8px;">Response</div>
+            <pre style="margin:0;font-size:12px;line-height:1.6;">{
+  <span class="key">"status"</span>: <span class="string">"success"</span>,
+  <span class="key">"account_name"</span>: <span class="string">"BUDI SANTOSO"</span>,
+  <span class="key">"account_number"</span>: <span class="string">"1234567890"</span>,
+  <span class="key">"statement_period"</span>: <span class="string">"01/01/2025 - 31/01/2025"</span>,
+  <span class="key">"opening_balance"</span>: 5250000,
+  <span class="key">"closing_balance"</span>: 8750000,
+  <span class="key">"total_debit"</span>: 3200000,
+  <span class="key">"total_credit"</span>: 6700000,
+  <span class="key">"transaction_count"</span>: 18,
+  <span class="key">"balance_check"</span>: <span class="string">"passed"</span>,
+  <span class="key">"transactions"</span>: [
+    {
+      <span class="key">"date"</span>: <span class="string">"02/01/2025"</span>,
+      <span class="key">"description"</span>: <span class="string">"TRANSFER FROM SALARY"</span>,
+      <span class="key">"credit"</span>: 12500000,
+      <span class="key">"balance"</span>: 17750000
+    },
+    <span class="comment">// ... more transactions</span>
+  ]
+}</pre>
+          </div>
+        </div>
       </div>
-      <div class="demo-row">
-        <select id="bank">
-          <option value="bca">BCA</option>
-          <option value="mandiri">Mandiri</option>
-        </select>
-        <button id="actionBtn" onclick="runDemo()">Parse</button>
-        <a id="downloadBtn" href="#" download="mutasi.csv">⬇ Download CSV</a>
+
+      <!-- Verify tab (hidden by default) -->
+      <div id="tabVerify" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#5a6478;margin-bottom:8px;">Request</div>
+            <pre style="margin:0;font-size:12px;line-height:1.6;"><span class="comment"># POST /verify-income — demo_bca_statement.pdf</span>
+curl -X POST https://docaiid.pythonanywhere.com/verify-income \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -F "file=@statement.pdf" \
+  -F "bank=bca"</pre>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#5a6478;margin-bottom:8px;">Response</div>
+            <pre style="margin:0;font-size:12px;line-height:1.6;">{
+  <span class="key">"verification_score"</span>: 86,
+  <span class="key">"confidence"</span>: <span class="string">"high"</span>,
+  <span class="key">"detected_monthly_income"</span>: 12500000,
+  <span class="key">"income_source"</span>: <span class="string">"salary"</span>,
+  <span class="key">"salary_months_detected"</span>: 6,
+  <span class="key">"consistency_score"</span>: 89,
+  <span class="key">"balance_valid"</span>: <span class="key">true</span>,
+  <span class="key">"fraud_flags"</span>: [],
+  <span class="key">"monthly_incomes"</span>: [
+    {<span class="key">"month"</span>: <span class="string">"Jan 2025"</span>, <span class="key">"amount"</span>: 12500000, <span class="key">"source"</span>: <span class="string">"salary"</span>},
+    {<span class="key">"month"</span>: <span class="string">"Dec 2024"</span>, <span class="key">"amount"</span>: 12500000, <span class="key">"source"</span>: <span class="string">"salary"</span>}
+  ]
+}</pre>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px;">
+          <div style="text-align:center;padding:16px;background:#d9f4e3;border-radius:8px;">
+            <div style="font-size:32px;font-weight:900;color:#0e7a3d;">86</div>
+            <div style="font-size:12px;color:#5a6478;margin-top:4px;">Verification Score</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:#d9f4e3;border-radius:8px;">
+            <div style="font-size:32px;font-weight:900;color:#0e7a3d;">Rp12.5M</div>
+            <div style="font-size:12px;color:#5a6478;margin-top:4px;">Monthly Income</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:#d9f4e3;border-radius:8px;">
+            <div style="font-size:32px;font-weight:900;color:#0e7a3d;">89%</div>
+            <div style="font-size:12px;color:#5a6478;margin-top:4px;">Consistency Score</div>
+          </div>
+        </div>
       </div>
-      <p id="demo-status">Pilih file lalu klik Parse. Data hanya diproses di memori server demo, tidak disimpan.</p>
+
+      <div style="text-align:center;margin-top:24px;">
+        <a href="/signup" class="card-cta primary" style="display:inline-block;padding:13px 32px;border-radius:8px;font-size:15px;">Try It Yourself — Get Your Free API Key →</a>
+      </div>
     </div>
-    <div id="result"></div>
   </div>
 </section>
 
@@ -665,164 +740,11 @@ async function handleSignup(e) {
 </footer>
 
 <script>
-  var API_BASE = "https://docaiid.pythonanywhere.com";
-  var DEMO_KEY = "docai-dev-key-12345";
-  var currentMode = "parse";
-
-  var fileInput   = document.getElementById("file");
-  var bankSelect  = document.getElementById("bank");
-  var actionBtn   = document.getElementById("actionBtn");
-  var downloadBtn = document.getElementById("downloadBtn");
-  var statusEl    = document.getElementById("demo-status");
-  var resultEl    = document.getElementById("result");
-
-  function switchMode(mode) {
-    currentMode = mode;
-    document.getElementById("modeParse").classList.toggle("active", mode === "parse");
-    document.getElementById("modeVerify").classList.toggle("active", mode === "verify");
-    actionBtn.textContent = mode === "parse" ? "Parse" : "Verify Income";
-    resultEl.innerHTML = "";
-    statusEl.textContent = "Pilih file lalu klik " + actionBtn.textContent + ".";
-  }
-
-  function fmt(n) {
-    if (n == null) return "—";
-    return n.toLocaleString("id-ID", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-  }
-  function fmtDec(n) {
-    if (n == null) return "—";
-    return n.toLocaleString("id-ID", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-  function scoreClass(score) {
-    if (score > 70) return "score-green";
-    if (score >= 40) return "score-yellow";
-    return "score-red";
-  }
-  function escapeHtml(s) {
-    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
-
-  async function runDemo() {
-    var file = fileInput.files[0];
-    if (!file) { statusEl.textContent = "Pilih file PDF dulu."; return; }
-    actionBtn.disabled = true;
-    statusEl.textContent = currentMode === "parse" ? "Parsing..." : "Verifying income...";
-    downloadBtn.style.display = "none";
-    resultEl.innerHTML = "";
-
-    var form = new FormData();
-    form.append("file", file);
-    form.append("bank", bankSelect.value);
-    var endpoint = currentMode === "parse" ? "/parse" : "/verify-income";
-
-    try {
-      var resp = await fetch(API_BASE + endpoint, {
-        method: "POST",
-        headers: { "X-API-Key": DEMO_KEY },
-        body: form,
-      });
-      if (!resp.ok) {
-        var err = await resp.json().catch(function() { return {}; });
-        throw new Error(err.detail || JSON.stringify(err) || "HTTP " + resp.status);
-      }
-      var data = await resp.json();
-      if (currentMode === "parse") { renderParse(data, form); }
-      else { renderVerify(data); }
-      statusEl.textContent = "Berhasil.";
-    } catch (e) {
-      statusEl.textContent = "Gagal.";
-      resultEl.innerHTML = '<div class="error-box"><strong>Error:</strong> ' + escapeHtml(e.message) + '</div>';
-    }
-    actionBtn.disabled = false;
-  }
-
-  function renderParse(data, form) {
-    var passed = data.balance_check === "passed";
-    var n = data.transactions ? data.transactions.length : 0;
-    var rows = (data.transactions || []).map(function(t) {
-      return '<tr><td>' + escapeHtml(t.date) + '</td><td>' + escapeHtml(t.description) + '</td>'
-        + '<td class="num">' + (t.debit ? fmtDec(t.debit) : "") + '</td>'
-        + '<td class="num">' + (t.credit ? fmtDec(t.credit) : "") + '</td>'
-        + '<td class="num">' + fmtDec(t.balance) + '</td></tr>';
-    }).join("");
-
-    resultEl.innerHTML =
-      '<div class="demo-card"><h3 style="margin-top:0; font-size:15px;">Hasil Parse'
-      + '<span class="badge-tag ' + (passed ? 'ok' : 'fail') + '">'
-      + (passed ? 'Balance-check PASSED' : 'Balance-check FAILED') + '</span></h3>'
-      + '<p style="font-size:13px; color:#5a6478; margin:8px 0 0;"><strong>'
-      + escapeHtml(data.account_name || "—") + '</strong> · '
-      + escapeHtml(data.account_number || "—") + ' · '
-      + escapeHtml(data.statement_period || "—") + ' · Saldo awal '
-      + fmtDec(data.opening_balance) + ' → akhir ' + fmtDec(data.closing_balance) + '</p>'
-      + '<ul style="font-size:13px; color:#5a6478; padding-left:18px; margin:8px 0 0;">'
-      + '<li>' + n + ' transaksi · Total debit ' + fmtDec(data.total_debit)
-      + ' · Total kredit ' + fmtDec(data.total_credit) + '</li>'
-      + (data.validation_error ? '<li style="color:#b42318">⚠ ' + escapeHtml(data.validation_error) + '</li>' : '')
-      + '</ul>'
-      + '<table class="parse-table"><thead><tr>'
-      + '<th>Tanggal</th><th>Keterangan</th><th class="num">Debit</th><th class="num">Kredit</th><th class="num">Saldo</th>'
-      + '</tr></thead><tbody>' + rows + '</tbody></table></div>'
-      + '<div class="demo-card"><h3 style="margin-top:0; font-size:15px;">Raw JSON</h3>'
-      + '<pre>' + escapeHtml(JSON.stringify(data, null, 2)) + '</pre></div>';
-
-    downloadBtn.style.display = "inline-block";
-    downloadBtn.onclick = async function(ev) {
-      ev.preventDefault();
-      var csvResp = await fetch(API_BASE + "/parse?format=csv", {
-        method: "POST", headers: { "X-API-Key": DEMO_KEY }, body: form,
-      });
-      var blob = await csvResp.blob();
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
-      a.href = url; a.download = "mutasi.csv"; a.click();
-      URL.revokeObjectURL(url);
-    };
-  }
-
-  function renderVerify(data) {
-    var score = data.verification_score != null ? data.verification_score : 0;
-    var cls = scoreClass(score);
-    var income = data.detected_monthly_income;
-    var consistency = data.consistency_score;
-    var flags = data.fraud_flags || [];
-    var balanceOk = data.balance_valid;
-    var monthRows = "";
-    var monthlyArr = data.monthly_incomes || [];
-    for (var i = 0; i < monthlyArr.length; i++) {
-      var m = monthlyArr[i];
-      monthRows += '<tr><td>' + escapeHtml(m.month) + '</td>'
-        + '<td class="num">' + fmt(m.amount) + '</td><td>' + escapeHtml(m.source || "—") + '</td></tr>';
-    }
-
-    var html =
-      '<div class="score-hero ' + cls + '">'
-      + '<div class="score-num">' + score + '</div>'
-      + '<div class="score-label">Verification Score</div></div>'
-      + '<div class="metric-grid">'
-      + '<div class="metric-card"><div class="metric-value">' + (income ? "Rp " + fmt(income) : "—") + '</div><div class="metric-label">Monthly Income Estimate</div></div>'
-      + '<div class="metric-card"><div class="metric-value">' + (consistency != null ? consistency + "%" : "—") + '</div><div class="metric-label">Consistency Score</div></div>'
-      + '<div class="metric-card"><div class="metric-value">' + (data.salary_months_detected || 0) + '</div><div class="metric-label">Salary Months Detected</div></div>'
-      + '<div class="metric-card"><div class="metric-value">' + (data.confidence || "—") + '</div><div class="metric-label">Confidence Level</div></div>'
-      + '</div>'
-      + '<div class="flags-box ' + (flags.length === 0 ? 'clean' : '') + '">'
-      + '<strong>' + (flags.length === 0 ? '✅ No Fraud Flags' : '⚠ Fraud Flags Detected') + '</strong>'
-      + (flags.length === 0 ? 'Tidak ada pola mencurigakan terdeteksi.'
-        : flags.map(function(f) { return '• ' + escapeHtml(f); }).join('<br>')) + '</div>'
-      + '<div class="flags-box ' + (balanceOk ? 'clean' : '') + '" style="margin-top:10px;">'
-      + '<strong>' + (balanceOk ? '✅ Balance Check Passed' : '⚠ Balance Check Failed') + '</strong>'
-      + (balanceOk ? 'Saldo awal + kredit − debit = saldo akhir (konsisten).'
-        : 'Saldo tidak konsisten — kemungkinan ada transaksi yang terlewat.') + '</div>';
-
-    if (monthlyArr.length > 0) {
-      html += '<div class="demo-card" style="margin-top:16px;"><h3 style="margin-top:0; font-size:15px;">Monthly Income Breakdown</h3>'
-        + '<table class="parse-table"><thead><tr><th>Bulan</th><th class="num">Amount</th><th>Source</th></tr></thead>'
-        + '<tbody>' + monthRows + '</tbody></table></div>';
-    }
-    html += '<div class="demo-card"><h3 style="margin-top:0; font-size:15px;">Raw JSON</h3>'
-      + '<pre>' + escapeHtml(JSON.stringify(data, null, 2)) + '</pre></div>';
-
-    resultEl.innerHTML = html;
+  function switchTab(tab) {
+    document.getElementById("modeParse").classList.toggle("active", tab === "parse");
+    document.getElementById("modeVerify").classList.toggle("active", tab === "verify");
+    document.getElementById("tabParse").style.display = tab === "parse" ? "" : "none";
+    document.getElementById("tabVerify").style.display = tab === "verify" ? "" : "none";
   }
 </script>
 <!-- Analytics: replace with your tracking ID -->

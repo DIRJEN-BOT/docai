@@ -87,7 +87,7 @@ Untuk volume > 50.000 verifikasi/bulan:
 - **Batch processing** — upload ribuan statement sekaligus
 - **Custom scoring model** — adjust verification scoring sesuai risk policy
 
-Hubungi kami untuk pricing: hello@docai.id
+Hubungi kami untuk pricing: docaiid.pythonanywhere.com/contact.html
 
 ---
 
@@ -115,7 +115,7 @@ A: BCA (production-ready). Mandiri dalam pipeline. BNI & BRI menyusul.
 Untuk demo, pilot, atau pertanyaan pricing:
 
 - **WhatsApp:** [nomor]
-- **Email:** hello@docai.id
+- **Contact Form:** docaiid.pythonanywhere.com/contact.html
 - **LinkedIn:** [profile]
 - **API Docs:** docaiid.pythonanywhere.com/docs
 - **Try Free:** rapidapi.com/oyi77/api/docai

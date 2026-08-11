@@ -224,7 +224,7 @@ Balas email ini atau WhatsApp: [nomor]
 Salam,
 [Nama]
 Founder, DocAI
-hello@docai.id | docaiid.pythonanywhere.com
+docaiid.pythonanywhere.com
 ```
 
 ### Body — BNPL / Digital Bank
@@ -263,7 +263,7 @@ Send 10 sample statements → results within 24h.
 Reply or WhatsApp: [nomor]
 
 [Nama]
-Founder, DocAI | hello@docai.id
+Founder, DocAI | docaiid.pythonanywhere.com
 ```
 
 ---
