@@ -21,6 +21,8 @@ import calendar
 import io
 import json
 import os
+import re
+import secrets
 import tempfile
 import urllib.parse
 from datetime import datetime, timezone
@@ -53,7 +55,7 @@ API_KEYS: dict[str, dict] = {
     "docai-dev-key-12345": {"tier": "free", "name": "Development"},
 }
 
-_EXEMPT_PATHS = frozenset({"/health", "/", "/docs", "/openapi.json"})
+_EXEMPT_PATHS = frozenset({"/health", "/", "/docs", "/openapi.json", "/signup"})
 
 
 def _check_api_key(environ) -> None:
@@ -62,8 +64,15 @@ def _check_api_key(environ) -> None:
     if path in _EXEMPT_PATHS:
         return
     key = environ.get("HTTP_X_API_KEY", "")
-    if not key or key not in API_KEYS:
+    if not key:
         raise PermissionError("Missing or invalid X-API-Key header")
+    # Check hardcoded keys first, then dynamically-created keys in usage.json
+    if key in API_KEYS:
+        return
+    usage = _load_usage()
+    if key in usage:
+        return
+    raise PermissionError("Missing or invalid X-API-Key header")
 
 
 def _get_api_key(environ) -> str:
@@ -956,6 +965,169 @@ def _handle_openapi_json(environ, start_response):
     return [body]
 
 
+# --- Self-service signup -----------------------------------------------------
+
+_SIGNUP_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocAI Verify — Get Your API Key</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; background: #0b1f3a; color: #e2e8f0; margin: 0; padding: 40px 20px; }
+  .card { max-width: 560px; margin: 0 auto; background: #142640; border: 1px solid #2D3748; border-radius: 12px; padding: 40px 32px; }
+  h1 { font-size: 24px; margin: 0 0 8px; }
+  p.sub { color: #a0aec0; margin: 0 0 24px; }
+  label { display: block; font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  input[type="email"], input[type="text"] {
+    width: 100%; padding: 12px 16px; border: 1px solid #2D3748; border-radius: 8px;
+    background: #0D1117; color: #E2E8F0; font-size: 16px; margin-bottom: 16px;
+  }
+  input:focus { outline: none; border-color: #4ade80; }
+  button { width: 100%; padding: 14px; background: #0e7a3d; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; }
+  button:hover { background: #0a6330; }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  #result { display: none; margin-top: 20px; padding: 20px; border-radius: 8px; background: #1A2332; border: 1px solid #48BB78; }
+  #result h3 { color: #48BB78; margin: 0 0 12px; font-size: 16px; }
+  code.key { display: block; padding: 12px; background: #0D1117; border-radius: 6px; font-family: monospace; word-break: break-all; color: #E2E8F0; margin-bottom: 10px; font-size: 14px; }
+  #result p { color: #a0aec0; font-size: 14px; margin: 0; }
+  .error { border-color: #e53e3e !important; }
+  .error h3 { color: #e53e3e !important; }
+  a.back { color: #4ade80; font-size: 14px; display: inline-block; margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Get Your API Key</h1>
+  <p class="sub">Start verifying incomes in 2 minutes. No credit card required. Free tier: 100 verifications/month.</p>
+  <div id="form-wrap">
+    <label for="email">Email address</label>
+    <input type="email" id="email" placeholder="you@company.com" required>
+    <label for="company">Company name</label>
+    <input type="text" id="company" placeholder="Acme Corp" required>
+    <button id="submit-btn" onclick="doSignup()">Get My Free API Key</button>
+  </div>
+  <div id="result">
+    <h3 id="result-title"></h3>
+    <code class="key" id="result-key"></code>
+    <p id="result-msg"></p>
+  </div>
+  <a class="back" href="/">Back to DocAI Verify</a>
+</div>
+<script>
+async function doSignup() {
+  var btn = document.getElementById('submit-btn');
+  var email = document.getElementById('email').value.trim();
+  var company = document.getElementById('company').value.trim();
+  if (!email || !company) { alert('Please fill in both fields.'); return; }
+  btn.textContent = 'Generating...'; btn.disabled = true;
+  try {
+    var res = await fetch('/signup', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email, company: company}) });
+    var data = await res.json();
+    if (data.api_key) {
+      document.getElementById('result-title').textContent = '\\u2705 Your API key is ready!';
+      document.getElementById('result-key').textContent = data.api_key;
+      document.getElementById('result-msg').textContent = 'Copy this key and use it in the X-API-Key header. Free tier: ' + data.monthly_limit + ' verifications/month.';
+      document.getElementById('form-wrap').style.display = 'none';
+      document.getElementById('result').style.display = 'block';
+    } else {
+      document.getElementById('result-title').textContent = 'Error';
+      document.getElementById('result-msg').textContent = data.error || 'Signup failed.';
+      document.getElementById('result').style.display = 'block';
+      document.getElementById('result').classList.add('error');
+      btn.textContent = 'Get My Free API Key'; btn.disabled = false;
+    }
+  } catch(e) {
+    alert('Network error. Please try again.');
+    btn.textContent = 'Get My Free API Key'; btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>"""
+
+
+def _generate_signup_key() -> str:
+    """Generate a unique API key in format docai-{8hex}-free."""
+    return f"docai-{secrets.token_hex(4)}-free"
+
+
+_EMAIL_RE = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
+
+
+def _handle_signup(environ, start_response):
+    """GET /signup — HTML form.  POST /signup — JSON: generate an API key."""
+    method = environ.get("REQUEST_METHOD", "GET")
+
+    if method == "GET":
+        body = _SIGNUP_HTML.encode("utf-8")
+        start_response(
+            "200 OK",
+            [("Content-Type", "text/html; charset=utf-8"), ("Content-Length", str(len(body)))],
+        )
+        return [body]
+
+    # POST — generate key
+    length = int(environ.get("CONTENT_LENGTH") or "0")
+    if length <= 0:
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "Empty request body"},
+        )
+    raw = environ["wsgi.input"].read(length)
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "Invalid JSON"},
+        )
+
+    email = (data.get("email") or "").strip()
+    company = (data.get("company") or "").strip()
+    if not email or not _EMAIL_RE.match(email):
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "Invalid email address"},
+        )
+    if not company:
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "Company name is required"},
+        )
+
+    # Generate unique key
+    usage = _load_usage()
+    for _ in range(10):  # retry on collision
+        key = _generate_signup_key()
+        if key not in usage and key not in API_KEYS:
+            break
+    else:
+        return _json_response(
+            start_response, "500 Internal Server Error",
+            {"error": "internal_error", "message": "Could not generate unique key"},
+        )
+
+    now = datetime.now(timezone.utc)
+    usage[key] = {
+        "tier": "free",
+        "name": company,
+        "email": email,
+        "calls_this_month": 0,
+        "total_calls": 0,
+        "last_call": None,
+        "created_at": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
+    _save_usage(usage)
+
+    return _json_response(start_response, "200 OK", {
+        "api_key": key,
+        "tier": "free",
+        "monthly_limit": TIER_LIMITS["free"],
+        "message": "Your API key is ready. Start verifying now.",
+    })
+
+
 # --- WSGI application --------------------------------------------------------
 
 def application(environ, start_response):
@@ -995,6 +1167,8 @@ def application(environ, start_response):
                 "404 Not Found",
                 {"error": "not_found", "message": "landing page not found"},
             )
+        if path == "/signup" and method in ("GET", "POST"):
+            return _handle_signup(environ, start_response)
         if path == "/docs" and method == "GET":
             return _handle_docs(environ, start_response)
         if path == "/openapi.json" and method == "GET":

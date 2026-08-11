@@ -534,22 +534,22 @@ curl -X POST https://docaiid.pythonanywhere.com/verify-income \
   </div>
 </section>
 
-<!-- API KEY REQUEST -->
+<!-- API KEY SIGNUP -->
 <section class="apikey-section" style="padding: 56px 20px;">
   <div class="container">
     <h2 class="section-title">Get Your API Key</h2>
-    <p class="section-subtitle">Start verifying incomes in 2 minutes.</p>
+    <p class="section-subtitle">Start verifying incomes in 2 minutes. No credit card required.</p>
     <div class="apikey-content">
       <div class="quickstart-steps">
         <div class="qs-step">
           <div class="qs-step-num">1</div>
           <h3>Sign Up</h3>
-          <p>Create your free account to get started</p>
+          <p>Enter your email and company name</p>
         </div>
         <div class="qs-step">
           <div class="qs-step-num">2</div>
           <h3>Get API Key</h3>
-          <p>Your key is issued instantly — no approval needed</p>
+          <p>Your key is generated instantly — no approval needed</p>
         </div>
         <div class="qs-step">
           <div class="qs-step-num">3</div>
@@ -558,23 +558,70 @@ curl -X POST https://docaiid.pythonanywhere.com/verify-income \
         </div>
       </div>
 
-      <div class="quickstart-code">
+      <div class="signup-form" id="signup-form">
+        <form onsubmit="return handleSignup(event)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+            <input type="email" id="signup-email" placeholder="your@email.com" required
+                   style="padding:12px 16px;border:1px solid #2D3748;border-radius:8px;background:#0D1117;color:#E2E8F0;font-size:16px;" />
+            <input type="text" id="signup-company" placeholder="Company name" required
+                   style="padding:12px 16px;border:1px solid #2D3748;border-radius:8px;background:#0D1117;color:#E2E8F0;font-size:16px;" />
+          </div>
+          <button type="submit" class="request-api-btn" style="width:100%;font-size:16px;padding:14px;">
+            Get My Free API Key
+          </button>
+        </form>
+        <div id="signup-result" style="display:none;margin-top:16px;padding:16px;border-radius:8px;background:#1A2332;border:1px solid #48BB78;">
+          <p style="color:#48BB78;font-weight:600;margin:0 0 8px 0;">&#10003; Your API key is ready!</p>
+          <code id="signup-key" style="display:block;padding:12px;background:#0D1117;border-radius:6px;color:#E2E8F0;font-family:monospace;word-break:break-all;margin-bottom:8px;"></code>
+          <p style="color:#A0AEC0;font-size:14px;margin:0;">Copy this key and use it in the X-API-Key header. Free tier: 100 verifications/month.</p>
+        </div>
+      </div>
+
+      <div class="quickstart-code" style="margin-top:24px;">
         <span class="code-label">Quick Start</span>
         <pre><span class="comment"># Verify income from a bank statement PDF</span>
 curl -X POST https://docaiid.pythonanywhere.com/verify-income \
-  -H <span class="string">"X-API-Key: docai-dev-key-12345"</span> \
-  -F <span class="string">"file=@your_statement.pdf"</span> \
+  -H <span class="string">"X-API-Key: YOUR_KEY_HERE"</span> \
+  -F <span class="string">"file=@statement.pdf"</span> \
   -F <span class="string">"bank=bca"</span></pre>
-      </div>
-
-      <div style="text-align: center;">
-        <a href="mailto:hello@docai.id?subject=API%20Key%20Request%20-%20DocAI%20Verify&body=Hi,%0D%0A%0D%0AI%20would%20like%20to%20request%20an%20API%20key%20for%20DocAI%20Verify.%0D%0A%0D%0AName:%20[your%20name]%0D%0ACompany:%20[your%20company]%0D%0AUse%20case:%20[describe%20your%20use%20case]%0D%0AMonthly%20volume:%20[estimated%20verifications]" class="request-api-btn">
-          Request API Key
-        </a>
       </div>
     </div>
   </div>
 </section>
+
+<script>
+async function handleSignup(e) {
+  e.preventDefault();
+  var email = document.getElementById('signup-email').value;
+  var company = document.getElementById('signup-company').value;
+  var btn = e.target.querySelector('button');
+  btn.textContent = 'Generating...';
+  btn.disabled = true;
+
+  try {
+    var res = await fetch('/signup', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email: email, company: company})
+    });
+    var data = await res.json();
+
+    if (data.api_key) {
+      document.getElementById('signup-key').textContent = data.api_key;
+      document.getElementById('signup-result').style.display = 'block';
+      document.getElementById('signup-form').querySelector('form').style.display = 'none';
+    } else {
+      alert(data.error || 'Signup failed. Please try again.');
+      btn.textContent = 'Get My Free API Key';
+      btn.disabled = false;
+    }
+  } catch(err) {
+    alert('Network error. Please try again.');
+    btn.textContent = 'Get My Free API Key';
+    btn.disabled = false;
+  }
+}
+</script>
 
 <!-- FOOTER -->
 <footer>
