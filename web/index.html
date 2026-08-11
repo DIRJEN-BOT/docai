@@ -516,28 +516,20 @@ curl -X POST https://docaiid.pythonanywhere.com/verify-income \
 </section>
 
 <!-- EMAIL CAPTURE -->
-<!-- 
-  SETUP INSTRUCTIONS:
-  1. Go to https://formspree.io and create a free account
-  2. Create a new form and get your Form ID (looks like: xrgkaqbz)
-  3. Replace YOUR_FORM_ID below with your actual Form ID
-  4. (Optional) Set up email forwarding in Formspree settings
--->
 <section class="email-section" style="padding: 56px 20px;">
   <div class="container">
     <h2 class="section-title">Get Early Access</h2>
     <p class="section-subtitle">Be the first to know when we launch new bank parsers and features.</p>
     <div class="email-form">
-      <!-- Replace YOUR_FORM_ID with your actual Formspree form ID -->
-      <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+      <form action="mailto:hello@docai.id" method="post" enctype="text/plain">
         <div class="email-form-row">
           <input type="email" name="email" placeholder="your@email.com" required aria-label="Email address" />
           <button type="submit">Join Waitlist</button>
         </div>
-        <input type="hidden" name="_subject" value="DocAI Verify - Waitlist Signup" />
-        <input type="hidden" name="_captcha" value="false" />
+        <input type="hidden" name="subject" value="DocAI Verify - Waitlist Signup" />
+        <input type="hidden" name="body" value="Please add me to the DocAI Verify waitlist.%0D%0A%0D%0AName: [your name]%0D%0ACompany: [your company]%0D%0AUse case: [how you plan to use the API]" />
       </form>
-      <p class="email-disclaimer">No spam. Unsubscribe anytime.</p>
+      <p class="email-disclaimer">No spam. Unsubscribe anytime. Or email us directly at <a href="mailto:hello@docai.id">hello@docai.id</a></p>
     </div>
   </div>
 </section>
@@ -575,13 +567,8 @@ curl -X POST https://docaiid.pythonanywhere.com/verify-income \
   -F <span class="string">"bank=bca"</span></pre>
       </div>
 
-      <!-- 
-        SETUP: Replace YOUR_FORM_ID with your actual Google Form ID.
-        Create the form at https://forms.google.com/ and grab the ID from the URL.
-        The form should collect: name, email, company, use case.
-      -->
       <div style="text-align: center;">
-        <a href="https://docs.google.com/forms/d/YOUR_FORM_ID/viewform" class="request-api-btn" target="_blank" rel="noopener">
+        <a href="mailto:hello@docai.id?subject=API%20Key%20Request%20-%20DocAI%20Verify&body=Hi,%0D%0A%0D%0AI%20would%20like%20to%20request%20an%20API%20key%20for%20DocAI%20Verify.%0D%0A%0D%0AName:%20[your%20name]%0D%0ACompany:%20[your%20company]%0D%0AUse%20case:%20[describe%20your%20use%20case]%0D%0AMonthly%20volume:%20[estimated%20verifications]" class="request-api-btn">
           Request API Key
         </a>
       </div>
