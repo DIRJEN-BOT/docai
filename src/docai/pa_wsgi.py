@@ -367,9 +367,23 @@ def _handle_verify_income(environ, start_response):
     return _json_response(start_response, "200 OK", report_dict)
 
 
+def _serve_static_html(environ, start_response, path: str):
+    """Serve a static HTML file from WEB_DIR if it exists."""
+    if path.endswith(".html"):
+        candidate = WEB_DIR / path.lstrip("/")
+        if candidate.exists():
+            return _file_response(start_response, candidate, "text/html; charset=utf-8")
+    return None
+
+
 def application(environ, start_response):
     path = environ.get("PATH_INFO", "") or "/"
     method = environ.get("REQUEST_METHOD", "GET")
+    # Serve public static HTML pages without auth
+    if method == "GET":
+        static_result = _serve_static_html(environ, start_response, path)
+        if static_result is not None:
+            return static_result
     try:
         _check_api_key(environ)
     except PermissionError as e:
