@@ -1,0 +1,397 @@
+{
+	"info": {
+		"_postman_id": "docai-verify-collection",
+		"name": "DocAI Verify — Income Verification API",
+		"description": "Test the DocAI Verify API for parsing BCA & Mandiri bank statement PDFs into structured income data with fraud detection.\n\n**Base URL:** `https://docaiid.pythonanywhere.com`\n\n**Authentication:** All endpoints except `/health` require the `X-API-Key` header.\n\n**Free Tier:** 100 verifications/month — no credit card required.\n\n**Quick Start:** Import this collection, set the `api_key` variable, and try the `/health` endpoint first.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://docaiid.pythonanywhere.com",
+			"type": "string"
+		},
+		{
+			"key": "api_key",
+			"value": "docai-dev-key-12345",
+			"type": "string"
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "key",
+				"value": "X-API-Key",
+				"type": "string"
+			},
+			{
+				"key": "value",
+				"value": "{{api_key}}",
+				"type": "string"
+			},
+			{
+				"key": "in",
+				"value": "header",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.environment.set(\"timestamp\", new Date().toISOString());"
+				]
+			}
+		}
+	],
+	"item": [
+		{
+			"name": "Health",
+			"description": "Health check and bank discovery. No authentication required.",
+			"item": [
+				{
+					"name": "GET /health",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"timestamp\", new Date().toISOString());"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						},
+						"description": "Returns the API status and list of supported banks.\n\n**No authentication required.**\n\n**Response:**\n```json\n{\n  \"status\": \"ok\",\n  \"banks\": [\"bca\", \"mandiri\"]\n}\n```\n\nUse this to verify the API is reachable and see which banks are currently supported."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Parse",
+			"description": "Parse bank statement PDFs into structured transaction data. Returns a `ParseResult` with account info, balance validation, and transaction rows.",
+			"item": [
+				{
+					"name": "POST /parse (BCA)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"timestamp\", new Date().toISOString());"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "bank",
+									"value": "bca",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/parse",
+							"host": ["{{base_url}}"],
+							"path": ["parse"]
+						},
+						"description": "Parse a BCA e-statement PDF into structured transactions.\n\n**Select a PDF file** in the Body tab before sending.\n\nThe optional `password` field is for BCA DOB-locked PDFs (format: DDMMYYYY). Enable it if your statement is encrypted.\n\n**Response fields:**\n- `bank` — detected bank\n- `account_number` — account number from statement\n- `opening_balance` / `closing_balance` — IDR balances\n- `balance_check` — `\"passed\"` or `\"failed\"` (3-tier validation)\n- `transactions[]` — array of `{date, description, debit, credit, balance, reference}`"
+					},
+					"response": []
+				},
+				{
+					"name": "POST /parse (Mandiri)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"timestamp\", new Date().toISOString());"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "bank",
+									"value": "mandiri",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/parse",
+							"host": ["{{base_url}}"],
+							"path": ["parse"]
+						},
+						"description": "Parse a Mandiri Livin' e-statement PDF (2023+ format) into structured transactions.\n\n**Select a PDF file** in the Body tab before sending.\n\nMandiri uses bilingual headers, sign-based amounts (+/-), and pipe-separated lines. The parser handles Indonesian number formatting (dots for thousands, comma for decimal).\n\nThe optional `password` field supports Mandiri encrypted PDFs (DOB in DDMMYYYY format)."
+					},
+					"response": []
+				},
+				{
+					"name": "POST /parse (CSV format)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"timestamp\", new Date().toISOString());"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "bank",
+									"value": "bca",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/parse?format=csv",
+							"host": ["{{base_url}}"],
+							"path": ["parse"],
+							"query": [
+								{
+									"key": "format",
+									"value": "csv",
+									"description": "Output format: json or csv"
+								}
+							]
+						},
+						"description": "Parse a bank statement and return the result as semicolon-delimited CSV instead of JSON.\n\n**Select a PDF file** in the Body tab before sending.\n\n**CSV header:** `tanggal;keterangan;debit;kredit;saldo`\n\nUseful for importing into Excel, Google Sheets, or data pipelines."
+					},
+					"response": []
+				},
+				{
+					"name": "POST /parse (No auth — expect 401)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"timestamp\", new Date().toISOString());"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "bank",
+									"value": "bca",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/parse",
+							"host": ["{{base_url}}"],
+							"path": ["parse"]
+						},
+						"description": "Verify that the API correctly rejects unauthenticated requests.\n\n**Expected response:** HTTP 401 with body:\n```json\n{\n  \"error\": \"unauthorized\",\n  \"message\": \"Missing or invalid X-API-Key header.\"\n}\n```\n\nUse this to confirm auth enforcement is working."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Verify Income",
+			"description": "Parse a bank statement and produce a comprehensive income verification report with verification score, salary detection, consistency analysis, and fraud flags.",
+			"item": [
+				{
+					"name": "POST /verify-income (BCA)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"timestamp\", new Date().toISOString());"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "bank",
+									"value": "bca",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/verify-income",
+							"host": ["{{base_url}}"],
+							"path": ["verify-income"]
+						},
+						"description": "The primary endpoint for income verification. Parses a BCA e-statement PDF and returns a comprehensive `IncomeReport`.\n\n**Select a PDF file** in the Body tab before sending.\n\n**Response fields:**\n- `verification_score` — 0–100 composite score\n- `confidence` — `\"high\"`, `\"medium\"`, or `\"low\"`\n- `detected_monthly_income` — best monthly estimate (IDR)\n- `income_source` — `\"salary\"`, `\"mixed\"`, `\"freelance\"`, `\"business\"`, or `\"undetected\"`\n- `consistency_score` — income stability 0–100\n- `fraud_flags[]` — empty array = clean\n- `monthly_incomes[]` — per-month breakdown\n- `balance_valid` — true/false\n\nTypical latency: 30–150ms."
+					},
+					"response": []
+				},
+				{
+					"name": "POST /verify-income (Mandiri)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.environment.set(\"timestamp\", new Date().toISOString());"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "bank",
+									"value": "mandiri",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "",
+									"type": "text",
+									"disabled": true
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/verify-income",
+							"host": ["{{base_url}}"],
+							"path": ["verify-income"]
+						},
+						"description": "Parse a Mandiri Livin' e-statement PDF (2023+ format) and return a full income verification report.\n\n**Select a PDF file** in the Body tab before sending.\n\nSame response schema as BCA. The scoring engine handles Mandiri's bilingual format and sign-based amounts transparently.\n\nTypical latency: 50–200ms."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

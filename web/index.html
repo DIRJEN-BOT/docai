@@ -197,7 +197,86 @@
       .demo-row { flex-direction: column; align-items: stretch; }
       .pricing-table { font-size: 13px; }
       .pricing-table th, .pricing-table td { padding: 10px 12px; }
+      .social-proof-badges { grid-template-columns: repeat(2, 1fr); }
+      .email-form-row { flex-direction: column; }
+      .quickstart-steps { grid-template-columns: 1fr; }
     }
+
+    /* Social Proof Badges */
+    .social-proof-section { background: #fff; }
+    .social-proof-badges {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+      max-width: 720px; margin: 0 auto;
+    }
+    .proof-badge {
+      text-align: center; padding: 20px 12px;
+      background: #f9fafb; border: 1px solid #e3e7ee; border-radius: 10px;
+    }
+    .proof-badge .badge-icon { font-size: 28px; margin-bottom: 8px; }
+    .proof-badge .badge-value { font-size: 18px; font-weight: 800; color: #0b1f3a; }
+    .proof-badge .badge-desc { font-size: 12px; color: #5a6478; margin-top: 4px; }
+
+    /* Email Capture */
+    .email-section { background: #0b1f3a; color: #fff; }
+    .email-section .section-title { color: #fff; }
+    .email-section .section-subtitle { color: rgba(255,255,255,.7); }
+    .email-form {
+      max-width: 480px; margin: 0 auto; text-align: center;
+    }
+    .email-form-row {
+      display: flex; gap: 0; margin-bottom: 10px;
+    }
+    .email-form-row input[type="email"] {
+      flex: 1; padding: 14px 18px; border: 2px solid rgba(255,255,255,.2);
+      border-radius: 8px 0 0 8px; background: rgba(255,255,255,.1);
+      color: #fff; font-size: 15px; outline: none;
+    }
+    .email-form-row input[type="email"]::placeholder { color: rgba(255,255,255,.45); }
+    .email-form-row input[type="email"]:focus { border-color: #4ade80; }
+    .email-form-row button {
+      padding: 14px 28px; border: none; border-radius: 0 8px 8px 0;
+      background: #0e7a3d; color: #fff; font-size: 15px; font-weight: 700;
+      cursor: pointer; white-space: nowrap; transition: background .15s;
+    }
+    .email-form-row button:hover { background: #4ade80; color: #0b1f3a; }
+    .email-disclaimer { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 4px; }
+
+    /* API Key Section */
+    .apikey-section { background: #f6f7f9; }
+    .apikey-content {
+      max-width: 720px; margin: 0 auto;
+    }
+    .quickstart-steps {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+      margin-bottom: 36px;
+    }
+    .qs-step { text-align: center; padding: 20px 12px; }
+    .qs-step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #0b1f3a; color: #fff; font-weight: 800; font-size: 16px; margin-bottom: 12px;
+    }
+    .qs-step h3 { font-size: 15px; margin-bottom: 6px; }
+    .qs-step p { font-size: 13px; color: #5a6478; }
+    .qs-step a { color: #0e7a3d; font-weight: 600; }
+    .quickstart-code {
+      background: #0f172a; border-radius: 12px; padding: 24px;
+      margin-bottom: 28px; overflow-x: auto;
+    }
+    .quickstart-code pre {
+      margin: 0; background: transparent; padding: 0;
+      color: #d6e2ff; font-size: 13px; line-height: 1.7;
+    }
+    .quickstart-code .code-label {
+      display: block; font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: #4ade80; margin-bottom: 12px;
+    }
+    .request-api-btn {
+      display: inline-block; padding: 14px 32px;
+      background: #0e7a3d; color: #fff; border-radius: 8px;
+      font-size: 16px; font-weight: 700; transition: background .15s;
+    }
+    .request-api-btn:hover { background: #0a6330; text-decoration: none; }
   </style>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230b1f3a'/><text x='50' y='65' text-anchor='middle' font-size='50' font-family='system-ui' font-weight='bold' fill='%234ade80'>D</text></svg>" />
 </head>
@@ -404,6 +483,108 @@ curl -X POST https://docaiid.pythonanywhere.com/verify-income \
       <div class="bank-card"><div class="bank-name">Mandiri</div><div class="bank-status ready">✅ Production-ready</div></div>
       <div class="bank-card"><div class="bank-name">BNI</div><div class="bank-status soon">🔜 Coming soon</div></div>
       <div class="bank-card"><div class="bank-name">BRI</div><div class="bank-status soon">🔜 Coming soon</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section class="social-proof-section" style="padding: 40px 20px;">
+  <div class="container">
+    <div class="social-proof-badges">
+      <div class="proof-badge">
+        <div class="badge-icon">🧪</div>
+        <div class="badge-value">120</div>
+        <div class="badge-desc">Tests Passing</div>
+      </div>
+      <div class="proof-badge">
+        <div class="badge-icon">⏱️</div>
+        <div class="badge-value">99.9%</div>
+        <div class="badge-desc">Uptime SLA</div>
+      </div>
+      <div class="proof-badge">
+        <div class="badge-icon">⚡</div>
+        <div class="badge-value">30–150ms</div>
+        <div class="badge-desc">Avg Response</div>
+      </div>
+      <div class="proof-badge">
+        <div class="badge-icon">💰</div>
+        <div class="badge-value">Zero</div>
+        <div class="badge-desc">LLM Cost</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EMAIL CAPTURE -->
+<!-- 
+  SETUP INSTRUCTIONS:
+  1. Go to https://formspree.io and create a free account
+  2. Create a new form and get your Form ID (looks like: xrgkaqbz)
+  3. Replace YOUR_FORM_ID below with your actual Form ID
+  4. (Optional) Set up email forwarding in Formspree settings
+-->
+<section class="email-section" style="padding: 56px 20px;">
+  <div class="container">
+    <h2 class="section-title">Get Early Access</h2>
+    <p class="section-subtitle">Be the first to know when we launch new bank parsers and features.</p>
+    <div class="email-form">
+      <!-- Replace YOUR_FORM_ID with your actual Formspree form ID -->
+      <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <div class="email-form-row">
+          <input type="email" name="email" placeholder="your@email.com" required aria-label="Email address" />
+          <button type="submit">Join Waitlist</button>
+        </div>
+        <input type="hidden" name="_subject" value="DocAI Verify - Waitlist Signup" />
+        <input type="hidden" name="_captcha" value="false" />
+      </form>
+      <p class="email-disclaimer">No spam. Unsubscribe anytime.</p>
+    </div>
+  </div>
+</section>
+
+<!-- API KEY REQUEST -->
+<section class="apikey-section" style="padding: 56px 20px;">
+  <div class="container">
+    <h2 class="section-title">Get Your API Key</h2>
+    <p class="section-subtitle">Start verifying incomes in 2 minutes.</p>
+    <div class="apikey-content">
+      <div class="quickstart-steps">
+        <div class="qs-step">
+          <div class="qs-step-num">1</div>
+          <h3>Sign Up</h3>
+          <p>Create your free account to get started</p>
+        </div>
+        <div class="qs-step">
+          <div class="qs-step-num">2</div>
+          <h3>Get API Key</h3>
+          <p>Your key is issued instantly — no approval needed</p>
+        </div>
+        <div class="qs-step">
+          <div class="qs-step-num">3</div>
+          <h3>First API Call</h3>
+          <p>Verify your first income in under a minute</p>
+        </div>
+      </div>
+
+      <div class="quickstart-code">
+        <span class="code-label">Quick Start</span>
+        <pre><span class="comment"># Verify income from a bank statement PDF</span>
+curl -X POST https://docaiid.pythonanywhere.com/verify-income \
+  -H <span class="string">"X-API-Key: docai-dev-key-12345"</span> \
+  -F <span class="string">"file=@your_statement.pdf"</span> \
+  -F <span class="string">"bank=bca"</span></pre>
+      </div>
+
+      <!-- 
+        SETUP: Replace YOUR_FORM_ID with your actual Google Form ID.
+        Create the form at https://forms.google.com/ and grab the ID from the URL.
+        The form should collect: name, email, company, use case.
+      -->
+      <div style="text-align: center;">
+        <a href="https://docs.google.com/forms/d/YOUR_FORM_ID/viewform" class="request-api-btn" target="_blank" rel="noopener">
+          Request API Key
+        </a>
+      </div>
     </div>
   </div>
 </section>
