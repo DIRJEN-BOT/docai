@@ -104,19 +104,71 @@
   <h2>Contact</h2>
   <div class="contact-grid">
     <div class="contact-card">
-      <div class="icon">✉️</div>
-      <div class="label">Email</div>
-      <div class="value"><a href="mailto:hello@docai.id">hello@docai.id</a></div>
-    </div>
-    <div class="contact-card">
       <div class="icon">🐙</div>
       <div class="label">GitHub</div>
       <div class="value"><a href="https://github.com/oyi77/docai" target="_blank">github.com/oyi77/docai</a></div>
     </div>
+    <div class="contact-card">
+      <div class="icon">✉️</div>
+      <div class="label">Enterprise</div>
+      <div class="value">Use the form below</div>
+    </div>
   </div>
 
-  <h2>Enterprise Inquiries</h2>
-  <p>For enterprise integrations, custom bank support, volume pricing, or on-premise deployment discussions, please reach out via email at <a href="mailto:hello@docai.id">hello@docai.id</a>. WhatsApp availability can be arranged for urgent enterprise discussions — just mention it in your email.</p>
+  <h2>Send Us a Message</h2>
+  <div id="contact-form-wrap" style="max-width:480px;margin:16px 0;">
+    <form onsubmit="return handleContact(event)">
+      <div style="margin-bottom:12px;">
+        <label for="c-name" style="display:block;font-weight:600;font-size:14px;margin-bottom:4px;">Name</label>
+        <input type="text" id="c-name" placeholder="Your name" required style="width:100%;padding:10px 14px;border:1px solid #c4cbd6;border-radius:8px;font-size:15px;" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label for="c-email" style="display:block;font-weight:600;font-size:14px;margin-bottom:4px;">Email</label>
+        <input type="email" id="c-email" placeholder="you@company.com" required style="width:100%;padding:10px 14px;border:1px solid #c4cbd6;border-radius:8px;font-size:15px;" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label for="c-subject" style="display:block;font-weight:600;font-size:14px;margin-bottom:4px;">Subject</label>
+        <input type="text" id="c-subject" placeholder="Enterprise inquiry, partnership, etc." style="width:100%;padding:10px 14px;border:1px solid #c4cbd6;border-radius:8px;font-size:15px;" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label for="c-message" style="display:block;font-weight:600;font-size:14px;margin-bottom:4px;">Message</label>
+        <textarea id="c-message" rows="5" placeholder="How can we help?" required style="width:100%;padding:10px 14px;border:1px solid #c4cbd6;border-radius:8px;font-size:15px;resize:vertical;"></textarea>
+      </div>
+      <div style="position:absolute;left:-9999px;" aria-hidden="true"><input type="text" id="c-website" tabindex="-1" autocomplete="off"></div>
+      <button type="submit" id="c-submit-btn" style="width:100%;padding:12px;background:#0e7a3d;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;">Send Message</button>
+    </form>
+    <div id="contact-result" style="display:none;margin-top:16px;padding:16px;border-radius:8px;background:#d9f4e3;border:1px solid #a7d9bf;color:#0e7a3d;font-weight:600;"></div>
+  </div>
+
+  <script>
+  async function handleContact(e) {
+    e.preventDefault();
+    var btn = document.getElementById('c-submit-btn');
+    btn.textContent = 'Sending...'; btn.disabled = true;
+    var payload = {
+      name: document.getElementById('c-name').value.trim(),
+      email: document.getElementById('c-email').value.trim(),
+      subject: document.getElementById('c-subject').value.trim(),
+      message: document.getElementById('c-message').value.trim(),
+      website: document.getElementById('c-website').value.trim()
+    };
+    try {
+      var res = await fetch('/contact', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+      var data = await res.json();
+      if (data.status === 'ok') {
+        document.getElementById('contact-form-wrap').querySelector('form').style.display = 'none';
+        document.getElementById('contact-result').textContent = data.message;
+        document.getElementById('contact-result').style.display = 'block';
+      } else {
+        alert(data.error || 'Failed to send message.');
+        btn.textContent = 'Send Message'; btn.disabled = false;
+      }
+    } catch(err) {
+      alert('Network error. Please try again.');
+      btn.textContent = 'Send Message'; btn.disabled = false;
+    }
+  }
+  </script>
 
   <h2>Open Source</h2>
   <p>DocAI Verify's parser engine is open source under the <strong>MIT License</strong>. You can find the source code, contribute, or self-host on GitHub:</p>

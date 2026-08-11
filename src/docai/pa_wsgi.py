@@ -38,6 +38,8 @@ from docai.validation import ValidationError, validate_statement
 
 WEB_DIR = Path(__file__).resolve().parent.parent.parent / "web"
 _USAGE_FILE = Path(__file__).resolve().parent / "usage.json"
+_CONTACT_FILE = Path(__file__).resolve().parent / "contact_messages.json"
+_SIGNUP_RATE_FILE = Path(__file__).resolve().parent / "signup_usage.json"
 
 # --- Tier limits --------------------------------------------------------------
 
@@ -55,7 +57,7 @@ API_KEYS: dict[str, dict] = {
     "docai-dev-key-12345": {"tier": "free", "name": "Development"},
 }
 
-_EXEMPT_PATHS = frozenset({"/health", "/", "/docs", "/openapi.json", "/signup"})
+_EXEMPT_PATHS = frozenset({"/health", "/", "/docs", "/openapi.json", "/signup", "/contact"})
 
 
 def _check_api_key(environ) -> None:
@@ -1005,6 +1007,7 @@ _SIGNUP_HTML = """<!DOCTYPE html>
     <input type="email" id="email" placeholder="you@company.com" required>
     <label for="company">Company name</label>
     <input type="text" id="company" placeholder="Acme Corp" required>
+    <div style="position:absolute;left:-9999px;" aria-hidden="true"><input type="text" id="website" name="website" tabindex="-1" autocomplete="off"></div>
     <button id="submit-btn" onclick="doSignup()">Get My Free API Key</button>
   </div>
   <div id="result">
@@ -1019,10 +1022,11 @@ async function doSignup() {
   var btn = document.getElementById('submit-btn');
   var email = document.getElementById('email').value.trim();
   var company = document.getElementById('company').value.trim();
+  var website = document.getElementById('website').value.trim();
   if (!email || !company) { alert('Please fill in both fields.'); return; }
   btn.textContent = 'Generating...'; btn.disabled = true;
   try {
-    var res = await fetch('/signup', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email, company: company}) });
+    var res = await fetch('/signup', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email: email, company: company, website: website}) });
     var data = await res.json();
     if (data.api_key) {
       document.getElementById('result-title').textContent = '\\u2705 Your API key is ready!';
@@ -1085,6 +1089,25 @@ def _handle_signup(environ, start_response):
 
     email = (data.get("email") or "").strip()
     company = (data.get("company") or "").strip()
+    website = (data.get("website") or "").strip()  # honeypot field
+
+    # Honeypot check — bots fill this, humans don't
+    if website:
+        return _json_response(start_response, "200 OK", {
+            "api_key": f"docai-fake-{secrets.token_hex(4)}-free",
+            "tier": "free",
+            "monthly_limit": TIER_LIMITS["free"],
+            "message": "Your API key is ready. Start verifying now.",
+        })
+
+    # Per-IP rate limiting: max 3 signups per 24 hours
+    client_ip = environ.get("REMOTE_ADDR", "unknown")
+    if not _check_signup_rate(client_ip):
+        return _json_response(
+            start_response, "429 Too Many Requests",
+            {"error": "rate_limited", "message": "Too many signup attempts. Try again in 24 hours."},
+        )
+
     if not email or not _EMAIL_RE.match(email):
         return _json_response(
             start_response, "400 Bad Request",
@@ -1128,6 +1151,111 @@ def _handle_signup(environ, start_response):
     })
 
 
+# --- Contact form -----------------------------------------------------------
+
+def _handle_contact(environ, start_response):
+    """GET /contact — HTML form.  POST /contact — store message in JSON file."""
+    method = environ.get("REQUEST_METHOD", "GET")
+
+    if method == "GET":
+        # Serve the static contact.html
+        return _serve_static_html(environ, start_response, "contact.html") or _json_response(
+            start_response, "404 Not Found",
+            {"error": "not_found", "message": "contact page not found"},
+        )
+
+    # POST — store message
+    length = int(environ.get("CONTENT_LENGTH") or "0")
+    if length <= 0:
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "Empty request body"},
+        )
+    raw = environ["wsgi.input"].read(length)
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "Invalid JSON"},
+        )
+
+    name = (data.get("name") or "").strip()
+    email = (data.get("email") or "").strip()
+    subject = (data.get("subject") or "").strip()
+    message = (data.get("message") or "").strip()
+
+    if not email or not _EMAIL_RE.match(email):
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "Invalid email address"},
+        )
+    if not message:
+        return _json_response(
+            start_response, "400 Bad Request",
+            {"error": "invalid_request", "message": "Message is required"},
+        )
+
+    # Load existing messages
+    try:
+        messages = json.loads(_CONTACT_FILE.read_text("utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        messages = []
+
+    messages.append({
+        "name": name,
+        "email": email,
+        "subject": subject or "Contact Form",
+        "message": message,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "ip": environ.get("REMOTE_ADDR", "unknown"),
+    })
+
+    _CONTACT_FILE.write_text(json.dumps(messages, indent=2, ensure_ascii=False), "utf-8")
+
+    return _json_response(start_response, "200 OK", {
+        "status": "ok",
+        "message": "Message received. We'll respond within 24 hours.",
+    })
+
+
+# --- Signup rate limiting ----------------------------------------------------
+
+_SIGNUP_RATE_LIMIT = 3  # max signups per IP per 24 hours
+
+
+def _load_signup_usage() -> dict:
+    try:
+        return json.loads(_SIGNUP_RATE_FILE.read_text("utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def _save_signup_usage(data: dict) -> None:
+    _SIGNUP_RATE_FILE.write_text(json.dumps(data, indent=2), "utf-8")
+
+
+def _check_signup_rate(ip: str) -> bool:
+    """Return True if signup is allowed, False if rate limited."""
+    usage = _load_signup_usage()
+    now = datetime.now(timezone.utc)
+    ip_data = usage.get(ip, {"attempts": []})
+
+    # Prune attempts older than 24 hours
+    cutoff = now.timestamp() - 86400
+    ip_data["attempts"] = [t for t in ip_data["attempts"] if t > cutoff]
+
+    if len(ip_data["attempts"]) >= _SIGNUP_RATE_LIMIT:
+        usage[ip] = ip_data
+        _save_signup_usage(usage)
+        return False
+
+    ip_data["attempts"].append(now.timestamp())
+    usage[ip] = ip_data
+    _save_signup_usage(usage)
+    return True
+
+
 # --- WSGI application --------------------------------------------------------
 
 def application(environ, start_response):
@@ -1169,6 +1297,8 @@ def application(environ, start_response):
             )
         if path == "/signup" and method in ("GET", "POST"):
             return _handle_signup(environ, start_response)
+        if path == "/contact" and method in ("GET", "POST"):
+            return _handle_contact(environ, start_response)
         if path == "/docs" and method == "GET":
             return _handle_docs(environ, start_response)
         if path == "/openapi.json" and method == "GET":

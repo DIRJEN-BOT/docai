@@ -1,0 +1,11 @@
+{
+  "docai-e06977a5-free": {
+    "tier": "free",
+    "name": "Test Corp",
+    "email": "test@example.com",
+    "calls_this_month": 1,
+    "total_calls": 1,
+    "last_call": "2026-08-11T04:55:58.257499+00:00",
+    "created_at": "2026-08-11T04:55:58Z"
+  }
+}

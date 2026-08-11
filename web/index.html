@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DocAI Verify — Income Verification API</title>
-  <meta name="description" content="Income verification API for Indonesian fintech. Parse bank statement PDFs (BCA, Mandiri) → structured income data + verification score. 30-150ms. Free tier available." />
+  <meta name="description" content="Income verification API for Indonesian fintech. Parse bank statement PDFs (BCA, Mandiri) → structured income data + verification score. Sub-second response. Free tier available." />
   <meta property="og:title" content="DocAI Verify — Income Verification API" />
-  <meta property="og:description" content="Parse Indonesian bank e-statement PDFs → income verification score, salary detection, fraud signals. Zero LLM cost. 30-150ms." />
+  <meta property="og:description" content="Parse Indonesian bank e-statement PDFs → income verification score, salary detection, fraud signals. Zero LLM cost. Sub-second response." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://docaiid.pythonanywhere.com/" />
   <meta property="og:site_name" content="DocAI Verify" />
@@ -306,7 +306,7 @@
   <a class="cta" href="#demo">Coba Gratis →</a>
   <div class="trust-badges">
     <span class="badge">Zero LLM Cost</span>
-    <span class="badge">30–150ms</span>
+    <span class="badge">Sub-second</span>
     <span class="badge">Deterministic</span>
     <span class="badge">120 Tests Passing</span>
   </div>
@@ -403,7 +403,7 @@
       
       <p style="text-align: center; margin-top: 20px; font-size: 13px; color: #64748b;">
         Salary detected in 6/6 months · Balance validated · No fraud flags<br>
-        <span style="color: #4ade80;">●</span> Deterministic · Zero LLM cost · 30–150ms
+        <span style="color: #4ade80;">●</span> Deterministic · Zero LLM cost · Sub-second
       </p>
     </div>
   </div>
@@ -503,7 +503,7 @@ curl -X POST https://docaiid.pythonanywhere.com/verify-income \
       </div>
       <div class="proof-badge">
         <div class="badge-icon">⚡</div>
-        <div class="badge-value">30–150ms</div>
+        <div class="badge-value">Sub-second</div>
         <div class="badge-desc">Avg Response</div>
       </div>
       <div class="proof-badge">
@@ -521,18 +521,43 @@ curl -X POST https://docaiid.pythonanywhere.com/verify-income \
     <h2 class="section-title">Get Early Access</h2>
     <p class="section-subtitle">Be the first to know when we launch new bank parsers and features.</p>
     <div class="email-form">
-      <form action="mailto:hello@docai.id" method="post" enctype="text/plain">
+      <form id="waitlist-form" onsubmit="return handleWaitlist(event)">
         <div class="email-form-row">
-          <input type="email" name="email" placeholder="your@email.com" required aria-label="Email address" />
+          <input type="email" id="waitlist-email" placeholder="your@email.com" required aria-label="Email address" />
           <button type="submit">Join Waitlist</button>
         </div>
-        <input type="hidden" name="subject" value="DocAI Verify - Waitlist Signup" />
-        <input type="hidden" name="body" value="Please add me to the DocAI Verify waitlist.%0D%0A%0D%0AName: [your name]%0D%0ACompany: [your company]%0D%0AUse case: [how you plan to use the API]" />
+        <div style="position:absolute;left:-9999px;" aria-hidden="true"><input type="text" id="waitlist-website" tabindex="-1" autocomplete="off"></div>
       </form>
-      <p class="email-disclaimer">No spam. Unsubscribe anytime. Or email us directly at <a href="mailto:hello@docai.id">hello@docai.id</a></p>
+      <p class="email-disclaimer">No spam. Unsubscribe anytime.</p>
     </div>
   </div>
 </section>
+
+<script>
+async function handleWaitlist(e) {
+  e.preventDefault();
+  var email = document.getElementById('waitlist-email').value.trim();
+  var website = document.getElementById('waitlist-website').value.trim();
+  if (!email) return false;
+  var btn = e.target.querySelector('button');
+  btn.textContent = 'Joining...'; btn.disabled = true;
+  try {
+    var res = await fetch('/contact', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({name: '', email: email, subject: 'Waitlist Signup', message: 'Please add me to the DocAI Verify waitlist.', website: website})});
+    var data = await res.json();
+    if (data.status === 'ok') {
+      document.getElementById('waitlist-form').innerHTML = '<p style="color:#4ade80;font-weight:600;margin:0;">✓ You\'re on the list!</p>';
+    } else {
+      alert(data.error || 'Signup failed.');
+      btn.textContent = 'Join Waitlist'; btn.disabled = false;
+    }
+  } catch(err) {
+    alert('Network error. Please try again.');
+    btn.textContent = 'Join Waitlist'; btn.disabled = false;
+  }
+  return false;
+}
+</script>
 
 <!-- API KEY SIGNUP -->
 <section class="apikey-section" style="padding: 56px 20px;">
@@ -566,6 +591,7 @@ curl -X POST https://docaiid.pythonanywhere.com/verify-income \
             <input type="text" id="signup-company" placeholder="Company name" required
                    style="padding:12px 16px;border:1px solid #2D3748;border-radius:8px;background:#0D1117;color:#E2E8F0;font-size:16px;" />
           </div>
+          <div style="position:absolute;left:-9999px;" aria-hidden="true"><input type="text" id="signup-website" tabindex="-1" autocomplete="off"></div>
           <button type="submit" class="request-api-btn" style="width:100%;font-size:16px;padding:14px;">
             Get My Free API Key
           </button>
@@ -594,6 +620,7 @@ async function handleSignup(e) {
   e.preventDefault();
   var email = document.getElementById('signup-email').value;
   var company = document.getElementById('signup-company').value;
+  var website = document.getElementById('signup-website').value;
   var btn = e.target.querySelector('button');
   btn.textContent = 'Generating...';
   btn.disabled = true;
@@ -602,7 +629,7 @@ async function handleSignup(e) {
     var res = await fetch('/signup', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email: email, company: company})
+      body: JSON.stringify({email: email, company: company, website: website})
     });
     var data = await res.json();
 
