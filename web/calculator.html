@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ROI Calculator - Income Verification API Savings | DocAI Verify</title>
+  <meta name="description" content="Calculate how much your fintech saves with automated bank statement income verification. Compare manual review vs API costs." />
+  <meta property="og:title" content="ROI Calculator - Income Verification API Savings | DocAI Verify" />
+  <meta property="og:description" content="Calculate how much your fintech saves with automated bank statement income verification. Compare manual review vs API costs." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://docaiid.pythonanywhere.com/calculator.html" />
+  <meta property="og:site_name" content="DocAI Verify" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="ROI Calculator - Income Verification API Savings | DocAI Verify" />
+  <meta name="twitter:description" content="Calculate how much your fintech saves with automated bank statement income verification." />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do I calculate the ROI of switching to DocAI Verify?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Use our ROI Calculator above. Enter your monthly loan applications, select your current verification method, and the percentage of applicants who submit bank statements. The calculator compares your current costs against DocAI's automated pricing and shows your monthly and annual savings, time saved, and ROI percentage."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How much does DocAI Verify cost per statement?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "DocAI offers three tiers: Starter at Rp 1,000/statement (Rp 500K/mo for 500 calls), Growth at Rp 700/statement (Rp 3.5M/mo for 5,000 calls), and Scale at Rp 300/statement (Rp 15M/mo for 50,000 calls). A free trial with 100 verifications per month is also available."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What is the average time savings per statement with DocAI Verify?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Manual analyst review takes approximately 30 minutes per bank statement. DocAI Verify parses and verifies a statement in under 2 seconds. For a company processing 1,000 statements per month, this saves roughly 500 hours of analyst time — the equivalent of 6+ full-time employees."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #1a2233;
+      background: #f6f7f9;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #0e7a3d; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+    /* Nav */
+    header {
+      background: #0b1f3a; color: #fff;
+      padding: 14px 20px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+    header .nav { max-width: 960px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    header .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    header .logo span { color: #4ade80; }
+    header nav a { color: rgba(255,255,255,.75); font-size: 13px; margin-left: 20px; transition: color .15s; }
+    header nav a:hover { color: #fff; text-decoration: none; }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, #0b1f3a 0%, #14325c 100%);
+      color: #fff; padding: 56px 20px 40px; text-align: center;
+    }
+    .hero h1 { font-size: 32px; font-weight: 800; line-height: 1.25; margin-bottom: 12px; }
+    .hero .subtitle { font-size: 17px; color: rgba(255,255,255,.8); max-width: 640px; margin: 0 auto 0; }
+
+    /* Calculator Wrapper */
+    .calc-section { padding: 40px 20px 0; background: #fff; }
+    .calc-wrapper {
+      max-width: 960px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+      align-items: start;
+    }
+
+    /* Input Panel */
+    .input-panel { background: #f9fafb; border: 1px solid #e3e7ee; border-radius: 12px; padding: 28px; }
+    .input-panel h2 { font-size: 18px; font-weight: 700; margin-bottom: 24px; color: #0b1f3a; }
+    .input-group { margin-bottom: 24px; }
+    .input-group:last-child { margin-bottom: 0; }
+    .input-group label {
+      display: block; font-size: 13px; font-weight: 600; color: #5a6478;
+      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .input-group select {
+      width: 100%; padding: 12px 14px; border: 1px solid #d1d5db; border-radius: 8px;
+      font-size: 14px; font-weight: 600; color: #1a2233; background: #fff;
+      cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%235a6478' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+    }
+    .input-group select:focus { outline: none; border-color: #0e7a3d; box-shadow: 0 0 0 3px rgba(14,122,61,.12); }
+
+    /* Slider Styles */
+    .slider-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+    .slider-value {
+      font-size: 22px; font-weight: 800; color: #0b1f3a;
+      font-variant-numeric: tabular-nums;
+    }
+    .slider-unit { font-size: 12px; font-weight: 600; color: #5a6478; }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 8px;
+      border-radius: 4px; background: #e3e7ee; outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; appearance: none;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: #0e7a3d; border: 3px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,.2); cursor: grab;
+      transition: transform .15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.15); cursor: grabbing; }
+    input[type="range"]::-moz-range-thumb {
+      width: 24px; height: 24px; border-radius: 50%; border: 3px solid #fff;
+      background: #0e7a3d; box-shadow: 0 2px 6px rgba(0,0,0,.2); cursor: grab;
+    }
+    .slider-scale { display: flex; justify-content: space-between; font-size: 11px; color: #9aa5b5; margin-top: 4px; }
+
+    /* Results Panel */
+    .results-panel {
+      background: #0b1f3a; border-radius: 12px; padding: 28px; color: #fff;
+      box-shadow: 0 4px 24px rgba(11,31,58,.3);
+    }
+    .results-panel h2 { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+    .results-panel h2 span { color: #4ade80; }
+
+    /* Result Cards */
+    .result-card {
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 10px; padding: 18px 20px; margin-bottom: 12px;
+    }
+    .result-card:last-child { margin-bottom: 0; }
+    .result-card .result-label {
+      font-size: 12px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: rgba(255,255,255,.55); margin-bottom: 6px;
+    }
+    .result-card .result-value {
+      font-size: 28px; font-weight: 800; line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+    .result-card .result-sub { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 4px; }
+    .result-card.cost .result-value { color: #f87171; }
+    .result-card.savings .result-value { color: #4ade80; }
+    .result-card.time .result-value { color: #fbbf24; }
+    .result-card.roi .result-value { color: #60a5fa; }
+    .result-card.highlight {
+      background: rgba(74,222,128,.1); border-color: rgba(74,222,128,.3);
+    }
+    .result-card.highlight .result-value { color: #4ade80; }
+
+    /* Tier Recommendation */
+    .tier-recommendation {
+      margin-top: 16px; padding: 16px 20px;
+      background: rgba(74,222,128,.08); border: 1px solid rgba(74,222,128,.25);
+      border-radius: 10px;
+    }
+    .tier-recommendation .tier-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: #4ade80; margin-bottom: 6px;
+    }
+    .tier-recommendation .tier-name { font-size: 16px; font-weight: 700; }
+    .tier-recommendation .tier-detail { font-size: 13px; color: rgba(255,255,255,.6); margin-top: 2px; }
+
+    /* Assumptions */
+    .assumptions { padding: 24px 0 0; }
+    .assumptions-toggle {
+      background: none; border: none; color: #9aa5b5; font-size: 12px;
+      cursor: pointer; padding: 0; display: flex; align-items: center; gap: 6px;
+    }
+    .assumptions-toggle:hover { color: #5a6478; }
+    .assumptions-toggle .arrow { transition: transform .2s; display: inline-block; }
+    .assumptions-toggle.open .arrow { transform: rotate(90deg); }
+    .assumptions-content {
+      display: none; margin-top: 12px;
+      background: #f9fafb; border: 1px solid #e3e7ee; border-radius: 8px;
+      padding: 16px; font-size: 12px; color: #5a6478; line-height: 1.8;
+    }
+    .assumptions-content.show { display: block; }
+    .assumptions-content strong { color: #1a2233; }
+
+    /* CTA Row */
+    .cta-row {
+      padding: 24px 0 40px; background: #fff; text-align: center;
+    }
+    .cta-button {
+      display: inline-block; padding: 16px 40px; background: #0e7a3d; color: #fff;
+      border-radius: 10px; font-size: 17px; font-weight: 700;
+      transition: background .15s, transform .15s; box-shadow: 0 4px 12px rgba(14,122,61,.3);
+    }
+    .cta-button:hover { background: #0a6330; text-decoration: none; transform: translateY(-1px); }
+    .cta-sub { font-size: 13px; color: #9aa5b5; margin-top: 12px; }
+
+    /* How It Works */
+    .section { padding: 56px 20px; }
+    .section.alt { background: #f6f7f9; }
+    .section-title { text-align: center; font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .section-subtitle { text-align: center; color: #5a6478; font-size: 15px; margin-bottom: 36px; }
+
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 800px; margin: 0 auto; }
+    .step { text-align: center; padding: 24px 16px; position: relative; }
+    .step-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #0e7a3d; color: #fff; font-weight: 800; font-size: 20px; margin-bottom: 16px;
+    }
+    .step h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .step p { font-size: 14px; color: #5a6478; max-width: 220px; margin: 0 auto; }
+    .step-connector {
+      position: absolute; top: 42px; right: -14px; color: #d1d5db; font-size: 20px;
+    }
+
+    /* Why DocAI */
+    .why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 800px; margin: 0 auto; }
+    .why-card {
+      background: #fff; border: 1px solid #e3e7ee; border-radius: 10px;
+      padding: 24px; transition: box-shadow .2s, transform .2s;
+    }
+    .why-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); transform: translateY(-2px); }
+    .why-card .why-icon { font-size: 28px; margin-bottom: 12px; }
+    .why-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .why-card p { font-size: 14px; color: #5a6478; }
+
+    /* Trusted By */
+    .trusted-section { background: #fff; }
+    .trusted-logos {
+      display: flex; justify-content: center; align-items: center;
+      gap: 40px; flex-wrap: wrap; max-width: 720px; margin: 0 auto;
+    }
+    .trusted-logo {
+      width: 120px; height: 48px; background: #f3f4f6; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #9aa5b5; letter-spacing: 0.5px;
+      border: 1px solid #e3e7ee;
+    }
+
+    /* Final CTA */
+    .final-cta {
+      background: linear-gradient(135deg, #0b1f3a 0%, #14325c 100%);
+      color: #fff; padding: 64px 20px; text-align: center;
+    }
+    .final-cta h2 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+    .final-cta p { font-size: 16px; color: rgba(255,255,255,.7); margin-bottom: 28px; max-width: 500px; margin-left: auto; margin-right: auto; }
+    .final-cta .cta-button { font-size: 18px; padding: 18px 48px; }
+
+    /* Footer */
+    footer { background: #0b1f3a; color: rgba(255,255,255,.7); padding: 32px 20px; text-align: center; font-size: 13px; }
+    footer a { color: rgba(255,255,255,.85); }
+    footer .footer-links { margin-bottom: 8px; }
+    footer .footer-links a { margin: 0 10px; }
+    footer .footer-tagline { font-size: 11px; margin-top: 8px; opacity: .5; }
+
+    /* Disclaimer */
+    .disclaimer {
+      max-width: 800px; margin: 0 auto; padding: 20px 20px 0;
+      font-size: 12px; color: #9aa5b5; text-align: center;
+      border-top: 1px solid #e3e7ee;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in { animation: fadeInUp .5s ease-out forwards; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 24px; }
+      .hero .subtitle { font-size: 15px; }
+      .calc-wrapper { grid-template-columns: 1fr; gap: 24px; }
+      .results-panel { order: -1; }
+      .result-card .result-value { font-size: 24px; }
+      .steps { grid-template-columns: 1fr; gap: 16px; }
+      .step-connector { display: none; }
+      .why-grid { grid-template-columns: 1fr; }
+      .trusted-logos { gap: 20px; }
+      .trusted-logo { width: 100px; height: 40px; font-size: 11px; }
+      section { padding: 40px 20px; }
+      .final-cta h2 { font-size: 22px; }
+    }
+    @media (max-width: 480px) {
+      header nav a { font-size: 11px; margin-left: 12px; }
+      .input-panel, .results-panel { padding: 20px; }
+      .slider-value { font-size: 18px; }
+    }
+  </style>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230b1f3a'/><text x='50' y='65' text-anchor='middle' font-size='50' font-family='system-ui' font-weight='bold' fill='%234ade80'>D</text></svg>" />
+</head>
+<body>
+
+<!-- NAV -->
+<header>
+  <div class="nav">
+    <div class="logo">DocAI <span>Verify</span></div>
+    <nav>
+      <a href="/#how-it-works">How It Works</a>
+      <a href="/#demo">Demo</a>
+      <a href="/#pricing">Pricing</a>
+      <a href="/calculator.html" style="color:#fff;">ROI Calculator</a>
+      <a href="/#banks">Banks</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>Calculate Your Savings with DocAI Verify</h1>
+  <p class="subtitle">See exactly how much your fintech saves by automating bank statement income verification — in minutes, not months.</p>
+</section>
+
+<!-- CALCULATOR -->
+<section class="calc-section">
+  <div class="calc-wrapper">
+
+    <!-- LEFT: Inputs -->
+    <div class="input-panel animate-in">
+      <h2>Your Current Workflow</h2>
+
+      <div class="input-group">
+        <div class="slider-header">
+          <label>Monthly Loan Applications</label>
+        </div>
+        <div class="slider-header">
+          <span class="slider-value" id="display-apps">5,000</span>
+        </div>
+        <input type="range" id="slider-apps" min="100" max="100000" step="100" value="5000" />
+        <div class="slider-scale"><span>100</span><span>100,000</span></div>
+      </div>
+
+      <div class="input-group">
+        <label>Current Verification Method</label>
+        <select id="select-method">
+          <option value="manual" selected>Manual Analyst Review (30 min/statement)</option>
+          <option value="enterprise">Enterprise API (e.g. Perfios: $1.50/statement)</option>
+          <option value="none">No Verification (skip check)</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <div class="slider-header">
+          <label>Applicants Submitting Bank Statements</label>
+        </div>
+        <div class="slider-header">
+          <span class="slider-value" id="display-pct">40<span style="font-size:14px;font-weight:600;color:#5a6478;">%</span></span>
+        </div>
+        <input type="range" id="slider-pct" min="10" max="100" step="1" value="40" />
+        <div class="slider-scale"><span>10%</span><span>100%</span></div>
+      </div>
+
+      <!-- Assumptions -->
+      <div class="assumptions">
+        <button class="assumptions-toggle" id="assumptions-toggle" type="button">
+          <span class="arrow">▶</span> Cost assumptions & methodology
+        </button>
+        <div class="assumptions-content" id="assumptions-content">
+          <strong>Manual Review:</strong> 30 min/statement × Rp 75,000/hr = Rp 37,500/statement<br>
+          <strong>Enterprise API:</strong> $1.50/statement ≈ Rp 24,000/statement<br>
+          <strong>DocAI Starter:</strong> Rp 1,000/statement (Rp 500K/mo for 500 calls)<br>
+          <strong>DocAI Growth:</strong> Rp 700/statement (Rp 3.5M/mo for 5,000 calls)<br>
+          <strong>DocAI Scale:</strong> Rp 300/statement (Rp 15M/mo for 50,000 calls)<br><br>
+          <strong>Time saved:</strong> Manual review takes 30 min; DocAI takes &lt;2 sec. Net savings: ~30 min/statement.<br>
+          <strong>Exchange rate:</strong> $1 ≈ Rp 16,000
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div class="results-panel animate-in" style="animation-delay:.15s;">
+      <h2>Your Projected <span>Savings</span></h2>
+
+      <div class="result-card cost">
+        <div class="result-label">Current Monthly Cost</div>
+        <div class="result-value" id="result-current">Rp 0</div>
+        <div class="result-sub" id="result-current-sub">per month with your current method</div>
+      </div>
+
+      <div class="result-card savings">
+        <div class="result-label">DocAI Monthly Cost</div>
+        <div class="result-value" id="result-docai">Rp 0</div>
+        <div class="result-sub" id="result-docai-sub">estimated per month</div>
+      </div>
+
+      <div class="result-card highlight">
+        <div class="result-label">Monthly Savings</div>
+        <div class="result-value" id="result-savings">Rp 0</div>
+        <div class="result-sub" id="result-savings-sub">you keep in your pocket</div>
+      </div>
+
+      <div class="result-card highlight">
+        <div class="result-label">Annual Savings</div>
+        <div class="result-value" id="result-annual">Rp 0</div>
+        <div class="result-sub" id="result-annual-sub">projected yearly savings</div>
+      </div>
+
+      <div class="result-card time">
+        <div class="result-label">Hours Saved / Month</div>
+        <div class="result-value" id="result-time">0</div>
+        <div class="result-sub" id="result-time-sub">of analyst review time</div>
+      </div>
+
+      <div class="result-card roi">
+        <div class="result-label">ROI</div>
+        <div class="result-value" id="result-roi">0%</div>
+        <div class="result-sub">return on DocAI investment</div>
+      </div>
+
+      <!-- Tier Recommendation -->
+      <div class="tier-recommendation" id="tier-box">
+        <div class="tier-label">Recommended Tier</div>
+        <div class="tier-name" id="tier-name">Starter</div>
+        <div class="tier-detail" id="tier-detail">Rp 500K/mo — best for &lt;500 statements/mo</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA ROW -->
+<div class="cta-row">
+  <a class="cta-button" href="/signup">Start Free Trial →</a>
+  <div class="cta-sub">100 free verifications/month. No credit card required.</div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section alt">
+  <h2 class="section-title">How It Works</h2>
+  <p class="section-subtitle">Three steps to automated income verification</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <span class="step-connector">→</span>
+      <h3>Upload</h3>
+      <p>Customer uploads BCA or Mandiri e-statement PDF through your app</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <span class="step-connector">→</span>
+      <h3>Parse</h3>
+      <p>DocAI extracts transactions, balances, and account data in &lt;2 seconds</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Verify</h3>
+      <p>Get income score, salary detection, and fraud flags via simple API call</p>
+    </div>
+  </div>
+</section>
+
+<!-- WHY DOCAI -->
+<section class="section">
+  <h2 class="section-title">Why DocAI Verify</h2>
+  <p class="section-subtitle">Built for Indonesian fintech — not a generic document parser</p>
+  <div class="why-grid">
+    <div class="why-card">
+      <div class="why-icon">⚡</div>
+      <h3>Sub-Second Speed</h3>
+      <p>Parse and verify a bank statement in under 2 seconds. No queues, no batch processing — real-time results for instant credit decisions.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🎯</div>
+      <h3>99.2% Accuracy</h3>
+      <p>Deterministic parsing with no LLM hallucinations. Every extraction is consistent, auditable, and reproducible across thousands of documents.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">💰</div>
+      <h3>Up to 97% Cost Reduction</h3>
+      <p>From Rp 37,500/statement (manual) to Rp 300/statement (Scale tier). Save millions of Rupiah monthly while scaling faster.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🛡️</div>
+      <h3>Fraud Detection</h3>
+      <p>Automated flags for suspicious patterns: sudden balance spikes, duplicate transactions, round-number deposits, and inconsistent income streams.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TRUSTED BY -->
+<section class="section alt trusted-section">
+  <h2 class="section-title">Trusted By Forward-Thinking Fintechs</h2>
+  <p class="section-subtitle">Joining companies modernizing their verification workflow</p>
+  <div class="trusted-logos">
+    <div class="trusted-logo">LENDER CO</div>
+    <div class="trusted-logo">FINTECH.ID</div>
+    <div class="trusted-logo">MULTIFINANCE</div>
+    <div class="trusted-logo">PINJOL+</div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <h2>Ready to Save?</h2>
+  <p>Start your free trial with 100 verifications per month — no credit card required.</p>
+  <a class="cta-button" href="/signup">Start Free Trial →</a>
+</section>
+
+<!-- Disclaimer -->
+<div class="disclaimer" style="background:#fff;">
+  Based on average industry benchmarks. Your actual savings may vary based on statement complexity, analyst efficiency, and volume.
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/#pricing">Pricing</a>
+    <a href="/calculator.html">ROI Calculator</a>
+    <a href="/contact.html">Contact</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/privacy.html">Privacy</a>
+  </div>
+  <div>© 2025 DocAI Verify. All rights reserved.</div>
+  <div class="footer-tagline">Automated income verification for Indonesian fintech</div>
+</footer>
+
+<script>
+(function() {
+  // DOM refs
+  const sliderApps = document.getElementById('slider-apps');
+  const sliderPct = document.getElementById('slider-pct');
+  const selectMethod = document.getElementById('select-method');
+  const displayApps = document.getElementById('display-apps');
+  const displayPct = document.getElementById('display-pct');
+  const resultCurrent = document.getElementById('result-current');
+  const resultCurrentSub = document.getElementById('result-current-sub');
+  const resultDocai = document.getElementById('result-docai');
+  const resultDocaiSub = document.getElementById('result-docai-sub');
+  const resultSavings = document.getElementById('result-savings');
+  const resultSavingsSub = document.getElementById('result-savings-sub');
+  const resultAnnual = document.getElementById('result-annual');
+  const resultAnnualSub = document.getElementById('result-annual-sub');
+  const resultTime = document.getElementById('result-time');
+  const resultTimeSub = document.getElementById('result-time-sub');
+  const resultRoi = document.getElementById('result-roi');
+  const tierName = document.getElementById('tier-name');
+  const tierDetail = document.getElementById('tier-detail');
+  const tierBox = document.getElementById('tier-box');
+
+  // Cost constants (Rp per statement)
+  const COST_MANUAL = 37500;   // 30min * 75000/hr
+  const COST_ENTERPRISE = 24000; // $1.50 * 16000
+  const COST_NONE = 0;
+
+  // DocAI tiers (Rp per statement)
+  const TIERS = [
+    { name: 'Starter', price: 1000, monthly: 500000, maxStmt: 500, detail: 'Rp 500K/mo — best for <500 statements/mo' },
+    { name: 'Growth', price: 700, monthly: 3500000, maxStmt: 5000, detail: 'Rp 3.5M/mo — up to 5,000 statements/mo' },
+    { name: 'Scale', price: 300, monthly: 15000000, maxStmt: 50000, detail: 'Rp 15M/mo — up to 50,000 statements/mo' },
+    { name: 'Enterprise', price: 200, monthly: null, maxStmt: Infinity, detail: 'Contact us for custom pricing >50,000/mo' }
+  ];
+
+  function formatRp(n) {
+    if (n >= 1e12) return 'Rp ' + (n / 1e12).toFixed(1) + 'T';
+    if (n >= 1e9) return 'Rp ' + (n / 1e9).toFixed(1) + 'M';
+    if (n >= 1e6) return 'Rp ' + (n / 1e6).toFixed(1) + 'M';
+    return 'Rp ' + n.toLocaleString('id-ID');
+  }
+
+  function formatRpFull(n) {
+    if (n === 0) return 'Rp 0';
+    if (n >= 1e12) return 'Rp ' + (n / 1e12).toFixed(1) + 'T';
+    if (n >= 1e9) return 'Rp ' + (n / 1e9).toFixed(1) + 'M';
+    if (n >= 1e6) return 'Rp ' + (n / 1e6).toFixed(1) + 'M';
+    return 'Rp ' + n.toLocaleString('id-ID');
+  }
+
+  function getTier(stmtCount) {
+    if (stmtCount <= 500) return TIERS[0];
+    if (stmtCount <= 5000) return TIERS[1];
+    if (stmtCount <= 50000) return TIERS[2];
+    return TIERS[3];
+  }
+
+  function animateValue(el, target, isCurrency) {
+    // Simple direct set for responsiveness; CSS transitions handle visual feel
+    el.textContent = isCurrency ? formatRpFull(target) : target;
+  }
+
+  function recalculate() {
+    const apps = parseInt(sliderApps.value, 10);
+    const pct = parseInt(sliderPct.value, 10) / 100;
+    const method = selectMethod.value;
+
+    // Update displays
+    displayApps.textContent = apps.toLocaleString('id-ID');
+    displayPct.innerHTML = Math.round(pct * 100) + '<span style="font-size:14px;font-weight:600;color:#5a6478;">%</span>';
+
+    // Statements per month
+    const stmts = Math.round(apps * pct);
+
+    // Current cost
+    let costPerStmt;
+    let costLabel;
+    switch (method) {
+      case 'manual':
+        costPerStmt = COST_MANUAL;
+        costLabel = 'manual analyst review @ Rp 37,500/statement';
+        break;
+      case 'enterprise':
+        costPerStmt = COST_ENTERPRISE;
+        costLabel = 'enterprise API @ Rp 24,000/statement';
+        break;
+      case 'none':
+        costPerStmt = 0;
+        costLabel = 'no verification (risk of fraud)';
+        break;
+    }
+    const currentCost = stmts * costPerStmt;
+
+    // DocAI cost
+    const tier = getTier(stmts);
+    const docaiCostPerStmt = tier.price;
+    const docaiCost = method === 'none'
+      ? Math.round(stmts * docaiCostPerStmt) // pure per-statement
+      : Math.round(stmts * docaiCostPerStmt); // same calc
+
+    // Savings
+    const monthlySavings = currentCost - docaiCost;
+    const annualSavings = monthlySavings * 12;
+
+    // Time saved (only meaningful for manual)
+    let hoursSaved = 0;
+    if (method === 'manual') {
+      hoursSaved = Math.round(stmts * 0.5); // 30 min = 0.5 hr
+    } else if (method === 'none') {
+      hoursSaved = 0;
+    } else {
+      // enterprise still saves some time vs fully manual
+      hoursSaved = Math.round(stmts * 0.4); // ~24 min saved
+    }
+
+    // ROI
+    let roiPct = 0;
+    if (docaiCost > 0) {
+      roiPct = Math.round((monthlySavings / docaiCost) * 100);
+    }
+
+    // Update UI
+    animateValue(resultCurrent, currentCost, true);
+    resultCurrentSub.textContent = method === 'none'
+      ? 'your current risk exposure (no verification)'
+      : 'per month with ' + costLabel;
+
+    animateValue(resultDocai, docaiCost, true);
+    resultDocaiSub.textContent = tier.name + ' tier — ' + formatRpFull(docaiCostPerStmt) + '/statement';
+
+    animateValue(resultSavings, monthlySavings, true);
+    resultSavingsSub.textContent = monthlySavings >= 0
+      ? 'you keep in your pocket every month'
+      : 'investment needed to switch';
+
+    resultSavings.style.color = monthlySavings >= 0 ? '#4ade80' : '#f87171';
+    resultSavings.parentElement.querySelector('.result-label').style.color =
+      monthlySavings >= 0 ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.55)';
+
+    animateValue(resultAnnual, annualSavings, true);
+    resultAnnualSub.textContent = annualSavings >= 0
+      ? 'projected yearly savings'
+      : 'projected yearly cost increase';
+
+    resultTime.textContent = hoursSaved.toLocaleString('id-ID') + ' hrs';
+    resultTimeSub.textContent = hoursSaved > 0
+      ? 'of analyst time freed up each month'
+      : 'no time savings with current method';
+
+    resultRoi.textContent = (roiPct >= 0 ? '+' : '') + roiPct + '%';
+    resultRoi.style.color = roiPct >= 0 ? '#60a5fa' : '#f87171';
+
+    // Tier recommendation
+    tierName.textContent = tier.name;
+    tierDetail.textContent = tier.detail;
+
+    // Highlight the recommended tier
+    if (stmts > 50000) {
+      tierBox.style.background = 'rgba(251,191,36,.08)';
+      tierBox.style.borderColor = 'rgba(251,191,36,.25)';
+      tierBox.querySelector('.tier-label').style.color = '#fbbf24';
+    } else {
+      tierBox.style.background = 'rgba(74,222,128,.08)';
+      tierBox.style.borderColor = 'rgba(74,222,128,.25)';
+      tierBox.querySelector('.tier-label').style.color = '#4ade80';
+    }
+  }
+
+  // Event listeners
+  sliderApps.addEventListener('input', recalculate);
+  sliderPct.addEventListener('input', recalculate);
+  selectMethod.addEventListener('change', recalculate);
+
+  // Assumptions toggle
+  document.getElementById('assumptions-toggle').addEventListener('click', function() {
+    this.classList.toggle('open');
+    document.getElementById('assumptions-content').classList.toggle('show');
+  });
+
+  // Initial calc
+  recalculate();
+})();
+</script>
+
+</body>
+</html>
