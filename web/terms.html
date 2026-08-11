@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms of Service — DocAI Verify</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #1a2233;
+      background: #f6f7f9;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #0e7a3d; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Nav */
+    header {
+      background: #0b1f3a; color: #fff;
+      padding: 14px 20px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+    header .nav { max-width: 960px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    header .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    header .logo span { color: #4ade80; }
+    header nav a { color: rgba(255,255,255,.75); font-size: 13px; margin-left: 20px; transition: color .15s; }
+    header nav a:hover { color: #fff; text-decoration: none; }
+
+    /* Content */
+    .page-hero {
+      background: linear-gradient(135deg, #0b1f3a 0%, #14325c 100%);
+      color: #fff; padding: 48px 20px 36px; text-align: center;
+    }
+    .page-hero h1 { font-size: 28px; font-weight: 800; line-height: 1.25; }
+    .page-hero .updated { font-size: 14px; color: rgba(255,255,255,.6); margin-top: 8px; }
+
+    .content { max-width: 800px; margin: 0 auto; padding: 40px 20px 60px; background: #fff; min-height: 60vh; }
+    .content h2 { font-size: 18px; font-weight: 700; margin: 32px 0 10px; color: #0b1f3a; border-bottom: 2px solid #e3e7ee; padding-bottom: 6px; }
+    .content h2:first-child { margin-top: 0; }
+    .content p, .content li { font-size: 15px; color: #2d3748; }
+    .content p { margin-bottom: 14px; }
+    .content ul, .content ol { margin: 0 0 14px 24px; }
+    .content li { margin-bottom: 6px; }
+    .content strong { color: #0b1f3a; }
+    .content .highlight-box {
+      background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
+      padding: 14px 18px; margin: 16px 0; font-size: 14px;
+    }
+
+    /* Footer */
+    footer { background: #0b1f3a; color: rgba(255,255,255,.7); padding: 32px 20px; text-align: center; font-size: 13px; }
+    footer a { color: rgba(255,255,255,.85); }
+    footer .footer-links { margin-bottom: 8px; }
+    footer .footer-links a { margin: 0 10px; }
+    footer .footer-tagline { font-size: 11px; margin-top: 8px; opacity: .5; }
+
+    @media (max-width: 640px) {
+      header nav a { margin-left: 12px; font-size: 12px; }
+      .page-hero h1 { font-size: 22px; }
+      .content { padding: 28px 16px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="/" class="logo" style="text-decoration:none">DocAI <span>Verify</span></a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/docs">API Docs</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-hero">
+  <h1>Terms of Service</h1>
+  <div class="updated">Effective: August 2026</div>
+</div>
+
+<div class="content">
+
+  <h2>1. Agreement to Terms</h2>
+  <p>By accessing or using the DocAI Verify API and related services ("Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree, do not use the Service.</p>
+
+  <h2>2. Service Description</h2>
+  <p>DocAI Verify provides bank statement parsing and income verification via a REST API. The Service accepts PDF e-statements (currently BCA and Mandiri), extracts transaction data using deterministic parsing, and returns structured JSON including income estimates, salary detection, and verification scores.</p>
+  <div class="highlight-box">
+    <strong>Key point:</strong> DocAI Verify is a parsing and scoring tool. It is not a credit bureau, lender, or financial advisor. The verification scores it produces are informational and must not be used as the sole basis for credit decisions.
+  </div>
+
+  <h2>3. Eligibility and Lawful Use</h2>
+  <p>You may only use the Service if:</p>
+  <ul>
+    <li>You are at least 18 years old and legally capable of entering a binding agreement.</li>
+    <li>You have a <strong>lawful basis</strong> to process bank statements submitted through the API. In most cases this means you have obtained the <strong>explicit, informed consent</strong> of the borrower or account holder before uploading their statement.</li>
+    <li>Your use complies with all applicable laws in the Republic of Indonesia, including but not limited to UU No. 27/2022 on Personal Data Protection (UU PDP) and OJK regulations on lending and data handling.</li>
+  </ul>
+
+  <h2>4. User Responsibilities</h2>
+  <ul>
+    <li>You are solely responsible for ensuring that every bank statement uploaded to the Service was provided voluntarily and with consent by the account holder.</li>
+    <li>You must not use the Service to process statements obtained through fraud, coercion, unauthorized access, or any unlawful means.</li>
+    <li>You must maintain records of borrower consent as required by applicable law.</li>
+    <li>You are responsible for the security of your API keys and must not share them.</li>
+  </ul>
+
+  <h2>5. Data Handling and Privacy</h2>
+  <p>DocAI Verify is designed with a <strong>stateless, zero-retention</strong> architecture:</p>
+  <ul>
+    <li><strong>No PDF storage:</strong> Uploaded PDFs are parsed in-memory and discarded immediately after processing. No copy is written to disk or retained.</li>
+    <li><strong>No personal data retention:</strong> Transaction data, account numbers, names, and other personal information extracted from statements are returned in the API response and never stored by DocAI Verify.</li>
+    <li><strong>API usage logs only:</strong> We retain only minimal operational logs (endpoint, timestamp, status code, API key identifier) for billing and abuse prevention. These logs contain no personal data from bank statements.</li>
+  </ul>
+  <p>For full details, see our <a href="/privacy.html">Privacy Policy</a>.</p>
+
+  <h2>6. API Usage and Rate Limits</h2>
+  <ul>
+    <li><strong>Fair use:</strong> The Service is provided for legitimate income verification use cases. Automated scraping, bulk data harvesting, or usage designed to circumvent rate limits is prohibited.</li>
+    <li><strong>No reselling:</strong> You may not resell, sublicense, or redistribute DocAI Verify results as a standalone product without a written agreement.</li>
+    <li><strong>Rate limits:</strong> Each plan tier has a monthly request cap and per-second rate limits. Exceeding these limits will result in HTTP 429 responses. Abuse of the API may result in account suspension.</li>
+    <li><strong>API key security:</strong> You must treat your API key as a secret. We are not responsible for unauthorized use of your key.</li>
+  </ul>
+
+  <h2>7. Accuracy and Disclaimers</h2>
+  <div class="highlight-box">
+    <strong>Important:</strong> DocAI Verify is provided "as is" and "as available." While we strive for high accuracy, we do not guarantee that parsing results, income estimates, or verification scores are complete, accurate, or suitable for any particular purpose.
+  </div>
+  <ul>
+    <li>Results are based on deterministic text parsing and heuristic scoring — they are not a substitute for manual underwriting or professional financial advice.</li>
+    <li>PDF quality, formatting variations, and edge cases may affect parsing accuracy.</li>
+    <li>You should independently verify critical information before making financial decisions.</li>
+  </ul>
+
+  <h2>8. Limitation of Liability</h2>
+  <p>To the maximum extent permitted by law:</p>
+  <ul>
+    <li>DocAI Verify shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Service.</li>
+    <li>Our total liability for any claim arising from the Service shall not exceed the amount you paid to us in the 12 months preceding the claim.</li>
+    <li>We are not liable for any credit decisions, loan approvals, or financial losses based on or related to the use of our verification results.</li>
+  </ul>
+
+  <h2>9. Intellectual Property</h2>
+  <p>All rights, title, and interest in and to the Service (including its code, algorithms, documentation, and branding) are owned by DocAI Verify. You receive a limited, non-exclusive, non-transferable license to use the Service in accordance with these Terms.</p>
+
+  <h2>10. Modifications to the Service</h2>
+  <p>We may update, modify, or discontinue any part of the Service at any time. We will provide reasonable notice of material changes via email or on our website. Continued use after changes take effect constitutes acceptance of the updated Terms.</p>
+
+  <h2>11. Termination</h2>
+  <p>We may suspend or terminate your access to the Service at any time if you violate these Terms or engage in activity that we reasonably believe harms the Service or other users. You may stop using the Service at any time.</p>
+
+  <h2>12. Governing Law and Disputes</h2>
+  <p>These Terms are governed by the laws of the <strong>Republic of Indonesia</strong>. Any dispute arising from or relating to these Terms or the Service shall be resolved through good-faith negotiation, and if unresolved, through the competent courts of Jakarta, Indonesia.</p>
+
+  <h2>13. Changes to These Terms</h2>
+  <p>We may revise these Terms from time to time. The latest version will always be posted on this page with an updated effective date. Material changes will be communicated via email to registered users.</p>
+
+  <h2>14. Contact</h2>
+  <p>If you have questions about these Terms, please contact us at <a href="mailto:hello@docai.id">hello@docai.id</a>.</p>
+
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/docs">API Docs</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/contact.html">Contact</a>
+    <a href="https://github.com/oyi77/docai" target="_blank">GitHub</a>
+  </div>
+  <div>Built with ❤️ in Jakarta</div>
+  <div class="footer-tagline">DocAI Verify — Income Verification API for Indonesian Fintech</div>
+</footer>
+
+</body>
+</html>

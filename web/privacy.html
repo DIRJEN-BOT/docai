@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — DocAI Verify</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #1a2233;
+      background: #f6f7f9;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #0e7a3d; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Nav */
+    header {
+      background: #0b1f3a; color: #fff;
+      padding: 14px 20px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+    header .nav { max-width: 960px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    header .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    header .logo span { color: #4ade80; }
+    header nav a { color: rgba(255,255,255,.75); font-size: 13px; margin-left: 20px; transition: color .15s; }
+    header nav a:hover { color: #fff; text-decoration: none; }
+
+    /* Content */
+    .page-hero {
+      background: linear-gradient(135deg, #0b1f3a 0%, #14325c 100%);
+      color: #fff; padding: 48px 20px 36px; text-align: center;
+    }
+    .page-hero h1 { font-size: 28px; font-weight: 800; line-height: 1.25; }
+    .page-hero .updated { font-size: 14px; color: rgba(255,255,255,.6); margin-top: 8px; }
+
+    .content { max-width: 800px; margin: 0 auto; padding: 40px 20px 60px; background: #fff; min-height: 60vh; }
+    .content h2 { font-size: 18px; font-weight: 700; margin: 32px 0 10px; color: #0b1f3a; border-bottom: 2px solid #e3e7ee; padding-bottom: 6px; }
+    .content h2:first-child { margin-top: 0; }
+    .content p, .content li { font-size: 15px; color: #2d3748; }
+    .content p { margin-bottom: 14px; }
+    .content ul, .content ol { margin: 0 0 14px 24px; }
+    .content li { margin-bottom: 6px; }
+    .content strong { color: #0b1f3a; }
+    .content .highlight-box {
+      background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;
+      padding: 14px 18px; margin: 16px 0; font-size: 14px;
+    }
+    .content .alert-box {
+      background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;
+      padding: 14px 18px; margin: 16px 0; font-size: 14px;
+    }
+
+    /* Footer */
+    footer { background: #0b1f3a; color: rgba(255,255,255,.7); padding: 32px 20px; text-align: center; font-size: 13px; }
+    footer a { color: rgba(255,255,255,.85); }
+    footer .footer-links { margin-bottom: 8px; }
+    footer .footer-links a { margin: 0 10px; }
+    footer .footer-tagline { font-size: 11px; margin-top: 8px; opacity: .5; }
+
+    @media (max-width: 640px) {
+      header nav a { margin-left: 12px; font-size: 12px; }
+      .page-hero h1 { font-size: 22px; }
+      .content { padding: 28px 16px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="/" class="logo" style="text-decoration:none">DocAI <span>Verify</span></a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/docs">API Docs</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-hero">
+  <h1>Privacy Policy</h1>
+  <div class="updated">Effective: August 2026</div>
+</div>
+
+<div class="content">
+
+  <h2>1. Introduction</h2>
+  <p>This Privacy Policy explains how DocAI Verify ("we", "us", "our") handles data when you use our bank statement parsing and income verification API (the "Service"). We are committed to transparency about what we process, what we store, and what we do not store.</p>
+  <p>This policy is designed to comply with <strong>UU No. 27/2022 on Personal Data Protection (UU PDP)</strong> of the Republic of Indonesia.</p>
+
+  <h2>2. What We Process</h2>
+  <p>When you use the API, we process the following data:</p>
+  <ul>
+    <li><strong>Bank statement PDFs</strong> uploaded via the API for parsing and verification.</li>
+    <li><strong>API metadata</strong>: the endpoint called, timestamp, HTTP status code, and the API key identifier associated with your request.</li>
+  </ul>
+  <p>Bank statement PDFs may contain personal data including names, account numbers, transaction histories, and balances. We process this data solely to generate the verification result returned to you.</p>
+
+  <h2>3. How We Process Data</h2>
+  <div class="highlight-box">
+    <strong>Stateless processing:</strong> DocAI Verify uses deterministic text parsing (no large language models, no AI inference). PDFs are loaded into memory, parsed, and the extracted data is returned in the API response. The PDF and all extracted data are then immediately discarded from memory.
+  </div>
+  <ul>
+    <li><strong>No LLM or AI model is used.</strong> Parsing is rule-based and deterministic.</li>
+    <li><strong>No PDF is written to disk.</strong> Processing happens entirely in memory.</li>
+    <li><strong>No personal data is retained.</strong> Names, account numbers, transactions, and balances are returned to you and not stored by us.</li>
+  </ul>
+
+  <h2>4. What We Store</h2>
+  <p>We retain only minimal operational data:</p>
+  <ul>
+    <li><strong>API usage logs:</strong> endpoint path, HTTP method, status code, response time, timestamp, and API key identifier. These logs do not contain any data from bank statements.</li>
+    <li><strong>Account information:</strong> email address and plan details associated with your API key, used for billing and communication.</li>
+  </ul>
+  <p>Usage logs are retained for <strong>90 days</strong> for billing and abuse-prevention purposes, then automatically deleted.</p>
+
+  <h2>5. What We Do NOT Store</h2>
+  <div class="highlight-box">
+    <strong>We never store:</strong>
+  </div>
+  <ul>
+    <li>PDF contents or uploaded files</li>
+    <li>Transaction data, account numbers, or financial information</li>
+    <li>Personal information extracted from bank statements (names, addresses, balances)</li>
+    <li>Cookies for tracking or analytics</li>
+  </ul>
+
+  <h2>6. Data Residency</h2>
+  <div class="alert-box">
+    <strong>Important — International data processing:</strong> The DocAI Verify API runs on PythonAnywhere, which is hosted on <strong>US-based servers (AWS us-east-1)</strong>. Bank statement PDFs are processed in the United States and are immediately discarded after parsing. No data is stored or persisted on these servers.
+  </div>
+  <p>If you upload a bank statement via our API, you acknowledge that the data will be temporarily processed in the United States. If this is not acceptable for your use case, please do not use the Service or contact us to discuss alternatives.</p>
+
+  <h2>7. Cookies</h2>
+  <p>DocAI Verify uses <strong>minimal, session-only cookies</strong> necessary for the web demo to function. We do not use tracking cookies, analytics cookies, advertising cookies, or any third-party cookies. The session cookie is deleted when you close your browser.</p>
+
+  <h2>8. Your Rights (Under UU PDP)</h2>
+  <p>Under Indonesia's Personal Data Protection law, you have the right to:</p>
+  <ul>
+    <li><strong>Access:</strong> Request a copy of the usage logs we hold for your account.</li>
+    <li><strong>Rectification:</strong> Request correction of inaccurate account information.</li>
+    <li><strong>Deletion:</strong> Request deletion of your account and all associated usage logs.</li>
+    <li><strong>Data portability:</strong> Request your usage data in a structured, machine-readable format.</li>
+    <li><strong>Object:</strong> Object to processing of your data for purposes beyond what is described here.</li>
+  </ul>
+  <p>To exercise any of these rights, contact us at <a href="mailto:hello@docai.id">hello@docai.id</a>. We will respond within 30 days.</p>
+
+  <h2>9. Data Security</h2>
+  <p>We take reasonable technical measures to protect the minimal data we do retain:</p>
+  <ul>
+    <li>API communication is encrypted via TLS (HTTPS).</li>
+    <li>API keys are stored as irreversible hashes.</li>
+    <li>Server access is restricted and logged.</li>
+  </ul>
+  <p>However, no method of transmission over the Internet is 100% secure, and we cannot guarantee absolute security.</p>
+
+  <h2>10. Third-Party Services</h2>
+  <p>We do not share your data with third parties. We do not use third-party analytics, advertising, or tracking services on the DocAI Verify website or API.</p>
+
+  <h2>11. Changes to This Policy</h2>
+  <p>We may update this Privacy Policy from time to time. The latest version will always be posted on this page with an updated effective date. Material changes will be communicated via email to registered users.</p>
+
+  <h2>12. Contact</h2>
+  <p>For questions about this Privacy Policy or to exercise your data rights, contact us at <a href="mailto:hello@docai.id">hello@docai.id</a>.</p>
+
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/docs">API Docs</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/contact.html">Contact</a>
+    <a href="https://github.com/oyi77/docai" target="_blank">GitHub</a>
+  </div>
+  <div>Built with ❤️ in Jakarta</div>
+  <div class="footer-tagline">DocAI Verify — Income Verification API for Indonesian Fintech</div>
+</footer>
+
+</body>
+</html>

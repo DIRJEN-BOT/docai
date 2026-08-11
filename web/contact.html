@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — DocAI Verify</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: #1a2233;
+      background: #f6f7f9;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: #0e7a3d; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Nav */
+    header {
+      background: #0b1f3a; color: #fff;
+      padding: 14px 20px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,.15);
+    }
+    header .nav { max-width: 960px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    header .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    header .logo span { color: #4ade80; }
+    header nav a { color: rgba(255,255,255,.75); font-size: 13px; margin-left: 20px; transition: color .15s; }
+    header nav a:hover { color: #fff; text-decoration: none; }
+
+    /* Content */
+    .page-hero {
+      background: linear-gradient(135deg, #0b1f3a 0%, #14325c 100%);
+      color: #fff; padding: 48px 20px 36px; text-align: center;
+    }
+    .page-hero h1 { font-size: 28px; font-weight: 800; line-height: 1.25; }
+
+    .content { max-width: 800px; margin: 0 auto; padding: 40px 20px 60px; background: #fff; min-height: 60vh; }
+    .content h2 { font-size: 18px; font-weight: 700; margin: 32px 0 10px; color: #0b1f3a; border-bottom: 2px solid #e3e7ee; padding-bottom: 6px; }
+    .content h2:first-child { margin-top: 0; }
+    .content p, .content li { font-size: 15px; color: #2d3748; }
+    .content p { margin-bottom: 14px; }
+    .content ul { margin: 0 0 14px 24px; }
+    .content li { margin-bottom: 6px; }
+    .content strong { color: #0b1f3a; }
+
+    .contact-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+      margin: 16px 0;
+    }
+    .contact-card {
+      background: #f9fafb; border: 1px solid #e3e7ee; border-radius: 10px;
+      padding: 20px; text-align: center;
+    }
+    .contact-card .icon { font-size: 28px; margin-bottom: 8px; }
+    .contact-card .label { font-size: 13px; color: #5a6478; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+    .contact-card .value { font-size: 15px; font-weight: 700; color: #0b1f3a; }
+    .contact-card a { color: #0e7a3d; }
+
+    /* Footer */
+    footer { background: #0b1f3a; color: rgba(255,255,255,.7); padding: 32px 20px; text-align: center; font-size: 13px; }
+    footer a { color: rgba(255,255,255,.85); }
+    footer .footer-links { margin-bottom: 8px; }
+    footer .footer-links a { margin: 0 10px; }
+    footer .footer-tagline { font-size: 11px; margin-top: 8px; opacity: .5; }
+
+    @media (max-width: 640px) {
+      header nav a { margin-left: 12px; font-size: 12px; }
+      .page-hero h1 { font-size: 22px; }
+      .content { padding: 28px 16px 40px; }
+      .contact-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="/" class="logo" style="text-decoration:none">DocAI <span>Verify</span></a>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/docs">API Docs</a>
+      <a href="/terms.html">Terms</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-hero">
+  <h1>Contact &amp; About</h1>
+</div>
+
+<div class="content">
+
+  <h2>About DocAI Verify</h2>
+  <p>DocAI Verify is an income verification API built for Indonesian fintech. It takes PDF bank e-statements (BCA, Mandiri) and extracts structured data — transaction histories, salary detection, income consistency scoring, and fraud signals — in milliseconds, without using any LLM or AI model.</p>
+  <p>The goal is simple: give lenders and fintech companies a fast, deterministic, and affordable way to verify a borrower's income from their bank statements. No black boxes, no per-request AI costs, no data retention.</p>
+
+  <h2>Built By</h2>
+  <p>DocAI Verify is built by a solo founder in <strong>Jakarta, Indonesia</strong> with 7+ years of software engineering experience in fintech. The product is designed, built, and maintained independently — from the parser engine to the API layer to this website.</p>
+  <p>If you're building lending products, BNPL, or any service that needs income verification, I'd love to hear how DocAI Verify can help.</p>
+
+  <h2>Contact</h2>
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="icon">✉️</div>
+      <div class="label">Email</div>
+      <div class="value"><a href="mailto:hello@docai.id">hello@docai.id</a></div>
+    </div>
+    <div class="contact-card">
+      <div class="icon">🐙</div>
+      <div class="label">GitHub</div>
+      <div class="value"><a href="https://github.com/oyi77/docai" target="_blank">github.com/oyi77/docai</a></div>
+    </div>
+  </div>
+
+  <h2>Enterprise Inquiries</h2>
+  <p>For enterprise integrations, custom bank support, volume pricing, or on-premise deployment discussions, please reach out via email at <a href="mailto:hello@docai.id">hello@docai.id</a>. WhatsApp availability can be arranged for urgent enterprise discussions — just mention it in your email.</p>
+
+  <h2>Open Source</h2>
+  <p>DocAI Verify's parser engine is open source under the <strong>MIT License</strong>. You can find the source code, contribute, or self-host on GitHub:</p>
+  <p><a href="https://github.com/oyi77/docai" target="_blank">github.com/oyi77/docai →</a></p>
+  <p>If you find the project useful, a star on GitHub is always appreciated.</p>
+
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/docs">API Docs</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/contact.html">Contact</a>
+    <a href="https://github.com/oyi77/docai" target="_blank">GitHub</a>
+  </div>
+  <div>Built with ❤️ in Jakarta</div>
+  <div class="footer-tagline">DocAI Verify — Income Verification API for Indonesian Fintech</div>
+</footer>
+
+</body>
+</html>
