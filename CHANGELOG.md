@@ -2,6 +2,17 @@
 
 All notable changes to DocAI Verify will be documented in this file.
 
+## [Unreleased] - 2026-08-11
+
+### Added
+- Revenue projections (3 scenarios, 12-month forecast)
+- Competitor comparison (DocAI vs Perfios, Brick, Ayoconnect, VIDA, Didit.me)
+- RapidAPI listing (copy-paste ready)
+- Elevator pitch (LinkedIn, email, WhatsApp, meeting variants)
+- Demo script (15-minute sales call walkthrough)
+- 8 new outreach sequences (Kredivo, Akulaku, Home Credit, Bank Jago, DANA, BCA Finance, Mandiri Tunas, Qoala)
+- Master outreach tracker (25 companies)
+
 ## [2.0.0] — 2026-08-11
 
 ### Added
