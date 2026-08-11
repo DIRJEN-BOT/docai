@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DocAI Verify — Income Verification API</title>
+  <meta name="description" content="Income verification API for Indonesian fintech. Parse bank statement PDFs (BCA, Mandiri) → structured income data + verification score. 30-150ms. Free tier available." />
+  <meta property="og:title" content="DocAI Verify — Income Verification API" />
+  <meta property="og:description" content="Parse Indonesian bank e-statement PDFs → income verification score, salary detection, fraud signals. Zero LLM cost. 30-150ms." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://docaiid.pythonanywhere.com/" />
+  <meta property="og:site_name" content="DocAI Verify" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="DocAI Verify — Income Verification API" />
+  <meta name="twitter:description" content="Parse Indonesian bank e-statement PDFs → income verification score. BCA + Mandiri live. Free tier: 100 verifications/month." />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -190,6 +199,7 @@
       .pricing-table th, .pricing-table td { padding: 10px 12px; }
     }
   </style>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230b1f3a'/><text x='50' y='65' text-anchor='middle' font-size='50' font-family='system-ui' font-weight='bold' fill='%234ade80'>D</text></svg>" />
 </head>
 <body>
 
@@ -273,6 +283,50 @@
       <p id="demo-status">Pilih file lalu klik Parse. Data hanya diproses di memori server demo, tidak disimpan.</p>
     </div>
     <div id="result"></div>
+  </div>
+</section>
+
+<!-- Proof Section -->
+<section class="section" style="background: #fff;">
+  <div class="container">
+    <h2 class="section-title">Live Proof</h2>
+    <p class="section-subtitle">Real API response from a synthetic BCA statement</p>
+    
+    <div style="max-width: 640px; margin: 0 auto;">
+      <div style="background: #0f172a; border-radius: 12px; padding: 24px; font-family: 'Fira Code', monospace; font-size: 13px; line-height: 1.8; color: #e2e8f0; overflow-x: auto;">
+        <div style="color: #64748b; margin-bottom: 8px;">// POST /verify-income — demo_bca_statement.pdf</div>
+        <div>{</div>
+        <div>&nbsp;&nbsp;<span style="color: #4ade80;">"verification_score"</span>: <span style="color: #fbbf24;">86</span>,</div>
+        <div>&nbsp;&nbsp;<span style="color: #4ade80;">"confidence"</span>: <span style="color: #fbbf24;">"high"</span>,</div>
+        <div>&nbsp;&nbsp;<span style="color: #4ade80;">"detected_monthly_income"</span>: <span style="color: #fbbf24;">12500000</span>,</div>
+        <div>&nbsp;&nbsp;<span style="color: #4ade80;">"income_source"</span>: <span style="color: #fbbf24;">"mixed"</span>,</div>
+        <div>&nbsp;&nbsp;<span style="color: #4ade80;">"salary_months_detected"</span>: <span style="color: #fbbf24;">6</span>,</div>
+        <div>&nbsp;&nbsp;<span style="color: #4ade80;">"consistency_score"</span>: <span style="color: #fbbf24;">89</span>,</div>
+        <div>&nbsp;&nbsp;<span style="color: #4ade80;">"balance_valid"</span>: <span style="color: #4ade80;">true</span>,</div>
+        <div>&nbsp;&nbsp;<span style="color: #4ade80;">"fraud_flags"</span>: []</div>
+        <div>}</div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 24px;">
+        <div style="text-align: center; padding: 16px; background: #f0fdf4; border-radius: 8px;">
+          <div style="font-size: 28px; font-weight: 800; color: #16a34a;">86</div>
+          <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Verification Score</div>
+        </div>
+        <div style="text-align: center; padding: 16px; background: #f0fdf4; border-radius: 8px;">
+          <div style="font-size: 28px; font-weight: 800; color: #16a34a;">Rp12.5M</div>
+          <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Monthly Income Detected</div>
+        </div>
+        <div style="text-align: center; padding: 16px; background: #f0fdf4; border-radius: 8px;">
+          <div style="font-size: 28px; font-weight: 800; color: #16a34a;">89%</div>
+          <div style="font-size: 12px; color: #64748b; margin-top: 4px;">Consistency Score</div>
+        </div>
+      </div>
+      
+      <p style="text-align: center; margin-top: 20px; font-size: 13px; color: #64748b;">
+        Salary detected in 6/6 months · Balance validated · No fraud flags<br>
+        <span style="color: #4ade80;">●</span> Deterministic · Zero LLM cost · 30–150ms
+      </p>
+    </div>
   </div>
 </section>
 
@@ -529,5 +583,13 @@ curl -X POST https://docaiid.pythonanywhere.com/verify-income \
     resultEl.innerHTML = html;
   }
 </script>
+<!-- Analytics: replace with your tracking ID -->
+<!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script> -->
 </body>
 </html>
