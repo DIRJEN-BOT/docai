@@ -13,6 +13,7 @@ Quickstart:
 from docai.base import ParseError, PasswordProtectedError
 from docai.models import Bank, ParseResult, Transaction
 from docai.parsers.bca import BCAParser
+from docai.parsers.mandiri import MandiriParser
 from docai.parsers.registry import get_parser, list_banks
 from docai.utils import parse_indonesian_number
 from docai.validation import (
@@ -27,6 +28,7 @@ __version__ = "0.1.0"
 
 __all__ = [
     "BCAParser",
+    "MandiriParser",
     "Bank",
     "ParseError",
     "ParseResult",

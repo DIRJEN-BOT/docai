@@ -11,15 +11,18 @@ Endpoints:
     POST /parse             → parse an uploaded statement PDF
          multipart: file (PDF), bank (default "bca")
          query: format=json|csv (default json)
+    POST /verify-income     → parse + income verification report
 """
 
 from __future__ import annotations
 
+import io
 import tempfile
+from decimal import Decimal
 from pathlib import Path
 from typing import Optional, Tuple
 
-from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, Response
@@ -38,6 +41,31 @@ app = FastAPI(
     ),
     version="0.1.0",
 )
+
+# --- API key authentication ---------------------------------------------------
+
+# Hardcoded keys (will move to env/database later)
+API_KEYS: dict[str, dict] = {
+    "docai-dev-key-12345": {"tier": "free", "name": "Development"},
+}
+
+_EXEMPT_PATHS = frozenset({"/health", "/", "/docs", "/openapi.json"})
+
+
+async def _verify_api_key(request: Request) -> None:
+    """Verify API key from X-API-Key header. Exempt health/landing/docs."""
+    if request.url.path in _EXEMPT_PATHS:
+        return
+    key = request.headers.get("X-API-Key")
+    if not key or key not in API_KEYS:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "error": "unauthorized",
+                "message": "Missing or invalid X-API-Key header",
+            },
+        )
+
 
 # Allow browser demo pages (file:// or any origin) to call the API.
 app.add_middleware(
@@ -83,15 +111,40 @@ def landing() -> FileResponse:
     return FileResponse(WEB_DIR / "index.html")
 
 
+def _decrypt_pdf(src_path: str, password: str) -> str:
+    """Decrypt a password-protected PDF and write the unlocked copy to a temp file.
+
+    Returns the path to the decrypted file.  Caller is responsible for cleanup.
+    Password is never logged or stored.
+    """
+    from pypdf import PdfReader, PdfWriter
+
+    reader = PdfReader(src_path)
+    if not reader.decrypt(password):
+        raise PasswordProtectedError("Incorrect password for this PDF.")
+    writer = PdfWriter()
+    for page in reader.pages:
+        writer.add_page(page)
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    tmp.close()
+    with open(tmp.name, "wb") as f:
+        writer.write(f)
+    return tmp.name
+
+
 def _parse_and_validate(
-    file: UploadFile, bank: str
+    file: UploadFile,
+    bank: str,
+    password: Optional[str] = None,
 ) -> Tuple[ParseResult, str, Optional[str]]:
     """Persist the upload to disk, parse it, and run the balance check.
 
-    Returns (result, balance_status, validation_error). The temp file is
+    If *password* is provided and the PDF is encrypted, decrypt first.
+    Returns (result, balance_status, validation_error).  Temp files are
     always removed, even when parsing raises.
     """
     tmp_path: Optional[str] = None
+    decrypted_path: Optional[str] = None
     try:
         # pdfplumber/pypdf need a real file path, so we write the upload to a
         # temp file. Using a fixed ".pdf" suffix lets the parser's own checks
@@ -100,10 +153,19 @@ def _parse_and_validate(
             tmp.write(file.file.read())
             tmp_path = tmp.name
         parser = get_parser(bank)
-        result = parser.parse(tmp_path)
+        try:
+            result = parser.parse(tmp_path)
+        except PasswordProtectedError:
+            if not password:
+                raise
+            # Decrypt and retry
+            decrypted_path = _decrypt_pdf(tmp_path, password)
+            result = parser.parse(decrypted_path)
     finally:
         if tmp_path is not None:
             Path(tmp_path).unlink(missing_ok=True)
+        if decrypted_path is not None:
+            Path(decrypted_path).unlink(missing_ok=True)
 
     balance_status = "passed"
     validation_error: Optional[str] = None
@@ -117,12 +179,16 @@ def _parse_and_validate(
 
 @app.post("/parse", response_model=None)
 def parse(
-    file: UploadFile = File(...),
-    bank: str = Form("bca"),
+    _auth: None = Depends(_verify_api_key),
+    file: UploadFile = File(..., description="Bank statement PDF"),
+    bank: str = Form("bca", description="Bank identifier or 'auto'"),
+    password: Optional[str] = Form(None, description="PDF password (DOB DDMMYYYY)"),
     format: str = Query("json", pattern="^(json|csv)$"),
 ):
     try:
-        result, balance_status, validation_error = _parse_and_validate(file, bank)
+        result, balance_status, validation_error = _parse_and_validate(
+            file, bank, password=password
+        )
     except PasswordProtectedError as e:
         raise _http_error(400, "password_protected", str(e))
     except ParseError as e:
@@ -144,6 +210,77 @@ def parse(
     if validation_error is not None:
         payload["validation_error"] = validation_error
     return payload
+
+
+# --- Income verification ------------------------------------------------------
+
+try:
+    from docai.scoring import analyze_income, IncomeReport  # type: ignore[import-untyped]
+except ImportError:
+
+    def analyze_income(result: ParseResult) -> dict:  # type: ignore[misc]
+        """Stub scoring — returns basic report when scoring module is unavailable."""
+        credits = [t.credit for t in result.transactions if t.credit > 0]
+        total_credit = sum(credits, result.opening_balance.__class__(0))
+        return {
+            "verification_score": 0,
+            "confidence": "low",
+            "detected_monthly_income": 0,
+            "income_source": "undetected",
+            "salary_months_detected": 0,
+            "monthly_incomes": [],
+            "consistency_score": 0,
+            "income_cv": 0.0,
+            "has_gaps": False,
+            "gap_months": [],
+            "fraud_flags": [],
+            "balance_valid": True,
+            "has_suspicious_patterns": False,
+            "statement_period": result.statement_period,
+            "total_months_covered": 0,
+            "total_transactions": len(result.transactions),
+            "total_credit": float(total_credit),
+            "total_debit": float(result.total_debit),
+            "bank": result.bank.value,
+            "account_number": result.account_number,
+        }
+
+
+@app.post("/verify-income", response_model=None)
+def verify_income(
+    _auth: None = Depends(_verify_api_key),
+    file: UploadFile = File(..., description="Bank statement PDF"),
+    bank: str = Form("bca", description="Bank identifier or 'auto'"),
+    password: Optional[str] = Form(None, description="PDF password (DOB DDMMYYYY)"),
+):
+    """Parse a bank statement and return income verification report."""
+    try:
+        result, balance_status, _validation_error = _parse_and_validate(
+            file, bank, password=password
+        )
+    except PasswordProtectedError as e:
+        raise _http_error(400, "password_protected", str(e))
+    except ParseError as e:
+        raise _http_error(400, "parse_error", str(e))
+    except ValueError as e:
+        raise _http_error(400, "invalid_request", str(e))
+
+    report = analyze_income(result)
+    # IncomeReport is a dataclass with Decimal fields — convert for JSON
+    from dataclasses import asdict
+
+    report_dict = asdict(report)
+    # JSON-encode Decimals → floats
+    for key in ("detected_monthly_income", "total_credit", "total_debit"):
+        if isinstance(report_dict.get(key), Decimal):
+            report_dict[key] = float(report_dict[key])
+    for mi in report_dict.get("monthly_incomes", []):
+        if isinstance(mi.get("amount"), Decimal):
+            mi["amount"] = float(mi["amount"])
+    report_dict["balance_valid"] = balance_status == "passed"
+    report_dict["bank"] = result.bank.value
+    report_dict["account_number"] = result.account_number
+    return report_dict
 
 
 if __name__ == "__main__":

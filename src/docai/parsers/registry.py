@@ -6,9 +6,11 @@ from typing import Dict, Type
 
 from docai.base import BaseParser
 from docai.parsers.bca import BCAParser
+from docai.parsers.mandiri import MandiriParser
 
 _REGISTRY: Dict[str, Type[BaseParser]] = {
     "bca": BCAParser,
+    "mandiri": MandiriParser,
 }
 
 

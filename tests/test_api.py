@@ -6,13 +6,15 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from docai.api import app
+from docai.api import API_KEYS, app
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 NATIVE_PATH = FIXTURES_DIR / "bca_native.pdf"
 MISMATCH_PATH = FIXTURES_DIR / "bca_balance_mismatch.pdf"
 HAPPY_PATH = FIXTURES_DIR / "bca_happy_path.pdf"
 
+API_KEY = list(API_KEYS.keys())[0]
+AUTH = {"X-API-Key": API_KEY}
 client = TestClient(app)
 
 
@@ -33,7 +35,7 @@ def test_landing_page_served():
 
 def test_parse_native_happy_path():
     with open(NATIVE_PATH, "rb") as f:
-        resp = client.post("/parse", files={"file": ("bca_native.pdf", f, "application/pdf")})
+        resp = client.post("/parse", files={"file": ("bca_native.pdf", f, "application/pdf")}, headers=AUTH)
     assert resp.status_code == 200, resp.text
     data = resp.json()
     assert data["bank"] == "bca"
@@ -50,7 +52,7 @@ def test_parse_native_happy_path():
 def test_parse_balance_mismatch_flags_not_errors():
     """A mismatched statement is a valid parse — API flags it, does not 4xx."""
     with open(MISMATCH_PATH, "rb") as f:
-        resp = client.post("/parse", files={"file": ("mismatch.pdf", f, "application/pdf")})
+        resp = client.post("/parse", files={"file": ("mismatch.pdf", f, "application/pdf")}, headers=AUTH)
     assert resp.status_code == 200, resp.text
     data = resp.json()
     assert data["balance_check"] == "failed"
@@ -62,6 +64,7 @@ def test_parse_csv_output():
         resp = client.post(
             "/parse?format=csv",
             files={"file": ("bca_native.pdf", f, "application/pdf")},
+            headers=AUTH,
         )
     assert resp.status_code == 200, resp.text
     assert resp.headers["content-type"].startswith("text/csv")
@@ -77,13 +80,14 @@ def test_parse_non_pdf_rejected():
     resp = client.post(
         "/parse",
         files={"file": ("not_a_pdf.txt", b"hello world", "text/plain")},
+        headers=AUTH,
     )
     assert resp.status_code == 400
     assert "error" in resp.json()
 
 
 def test_parse_missing_file_field():
-    resp = client.post("/parse")
+    resp = client.post("/parse", headers=AUTH)
     assert resp.status_code == 422
 
 
@@ -92,7 +96,8 @@ def test_parse_unknown_bank_rejected():
         resp = client.post(
             "/parse",
             files={"file": ("bca_native.pdf", f, "application/pdf")},
-            data={"bank": "mandiri"},
+            data={"bank": "nonexistent_bank"},
+            headers=AUTH,
         )
     assert resp.status_code == 400
     assert "No parser registered" in resp.json()["message"]
