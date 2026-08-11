@@ -26,3 +26,6 @@ Thumbs.db
 # Local secrets / data
 .env
 *.local
+
+# Local binaries
+deploy/cloudflared/cloudflared.exe

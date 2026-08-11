@@ -1,0 +1,4 @@
+# Runtime deps for the PythonAnywhere deployment (pure-WSGI adapter in docai.pa_wsgi).
+# fastapi/a2wsgi are only needed for local development (docai.api).
+pypdf>=4.0
+python-multipart>=0.0.9
